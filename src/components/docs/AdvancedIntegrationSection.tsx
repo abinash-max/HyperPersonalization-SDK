@@ -1,0 +1,404 @@
+import { CodeBlock } from '@/components/ui/CodeBlock';
+import { DocSection, DocHeading, DocParagraph, DocList, DocCallout, DocTable } from './DocSection';
+
+export const AdvancedIntegrationSection = () => {
+  const customModelInjectionCode = `import PersonaLens
+import CoreML
+
+/// Custom model injection for specialized use cases
+class PLModelRegistry {
+    static let shared = PLModelRegistry()
+    
+    private var customModels: [ModelType: MLModel] = [:]
+    
+    /// Register a custom CoreML model to replace bundled model
+    func registerCustomModel(
+        _ model: MLModel,
+        for type: ModelType
+    ) throws {
+        // Validate model input/output compatibility
+        try validateModelCompatibility(model, for: type)
+        
+        customModels[type] = model
+        
+        print("[PersonaLens] Registered custom model for \\(type)")
+    }
+    
+    /// Register model from URL (compiled .mlmodelc)
+    func registerCustomModel(
+        at url: URL,
+        for type: ModelType
+    ) throws {
+        let config = MLModelConfiguration()
+        config.computeUnits = .all
+        
+        let model = try MLModel(contentsOf: url, configuration: config)
+        try registerCustomModel(model, for: type)
+    }
+    
+    /// Get model for type (custom or default)
+    func model(for type: ModelType) -> MLModel {
+        return customModels[type] ?? defaultModel(for: type)
+    }
+    
+    /// Validate model compatibility with expected input/output
+    private func validateModelCompatibility(
+        _ model: MLModel,
+        for type: ModelType
+    ) throws {
+        let expectedSpec = type.expectedModelSpec
+        
+        // Check input features
+        for (name, expectedType) in expectedSpec.inputs {
+            guard let feature = model.modelDescription.inputDescriptionsByName[name] else {
+                throw PLError.modelMissingInput(name)
+            }
+            
+            guard feature.type == expectedType else {
+                throw PLError.modelInputTypeMismatch(name, expected: expectedType, got: feature.type)
+            }
+        }
+        
+        // Check output features
+        for (name, expectedType) in expectedSpec.outputs {
+            guard let feature = model.modelDescription.outputDescriptionsByName[name] else {
+                throw PLError.modelMissingOutput(name)
+            }
+            
+            guard feature.type == expectedType else {
+                throw PLError.modelOutputTypeMismatch(name, expected: expectedType, got: feature.type)
+            }
+        }
+    }
+}
+
+// MARK: - Model Types
+
+enum ModelType: String, CaseIterable {
+    case genderClassification
+    case ageClassification
+    case roomClassification
+    case objectDetection
+    case faceEmbedding
+    
+    var expectedModelSpec: ModelSpec {
+        switch self {
+        case .genderClassification:
+            return ModelSpec(
+                inputs: ["image": .image],
+                outputs: ["classLabel": .string, "classLabelProbs": .dictionary]
+            )
+        case .ageClassification:
+            return ModelSpec(
+                inputs: ["image": .image],
+                outputs: ["classLabel": .string, "classLabelProbs": .dictionary]
+            )
+        case .roomClassification:
+            return ModelSpec(
+                inputs: ["image": .image],
+                outputs: ["classLabel": .string, "confidence": .double]
+            )
+        case .objectDetection:
+            return ModelSpec(
+                inputs: ["image": .image],
+                outputs: ["coordinates": .multiArray, "confidence": .multiArray]
+            )
+        case .faceEmbedding:
+            return ModelSpec(
+                inputs: ["image": .image],
+                outputs: ["embedding": .multiArray]
+            )
+        }
+    }
+}
+
+struct ModelSpec {
+    let inputs: [String: MLFeatureType]
+    let outputs: [String: MLFeatureType]
+}`;
+
+  const webhooksCallbacksCode = `import PersonaLens
+import BackgroundTasks
+
+/// Background task management for long-running operations
+class PLBackgroundTaskManager {
+    static let taskIdentifier = "dev.personalens.generation"
+    
+    /// Register background task handler
+    static func registerBackgroundTasks() {
+        BGTaskScheduler.shared.register(
+            forTaskWithIdentifier: taskIdentifier,
+            using: nil
+        ) { task in
+            handleBackgroundTask(task as! BGProcessingTask)
+        }
+    }
+    
+    /// Start generation with background continuation support
+    func startGenerationWithBackgroundSupport(
+        request: GenerationRequest,
+        onProgress: @escaping (GenerationProgress) -> Void,
+        onComplete: @escaping (Result<GenerationResult, Error>) -> Void
+    ) {
+        // Start background task
+        var backgroundTaskId: UIBackgroundTaskIdentifier = .invalid
+        
+        backgroundTaskId = UIApplication.shared.beginBackgroundTask {
+            // Cleanup on expiration
+            UIApplication.shared.endBackgroundTask(backgroundTaskId)
+            backgroundTaskId = .invalid
+        }
+        
+        // Perform generation
+        Task {
+            do {
+                let result = try await performGeneration(
+                    request: request,
+                    onProgress: onProgress
+                )
+                
+                await MainActor.run {
+                    onComplete(.success(result))
+                    UIApplication.shared.endBackgroundTask(backgroundTaskId)
+                }
+            } catch {
+                await MainActor.run {
+                    onComplete(.failure(error))
+                    UIApplication.shared.endBackgroundTask(backgroundTaskId)
+                }
+            }
+        }
+    }
+    
+    /// Schedule background processing task
+    func scheduleBackgroundGeneration(request: GenerationRequest) {
+        let taskRequest = BGProcessingTaskRequest(
+            identifier: Self.taskIdentifier
+        )
+        taskRequest.requiresNetworkConnectivity = true
+        taskRequest.requiresExternalPower = false
+        
+        // Store request for background handler
+        persistPendingRequest(request)
+        
+        do {
+            try BGTaskScheduler.shared.submit(taskRequest)
+        } catch {
+            print("[PersonaLens] Failed to schedule background task: \\(error)")
+        }
+    }
+    
+    private static func handleBackgroundTask(_ task: BGProcessingTask) {
+        // Retrieve pending request and process
+        guard let request = loadPendingRequest() else {
+            task.setTaskCompleted(success: false)
+            return
+        }
+        
+        Task {
+            do {
+                let _ = try await shared.performGeneration(
+                    request: request,
+                    onProgress: { _ in }
+                )
+                task.setTaskCompleted(success: true)
+            } catch {
+                task.setTaskCompleted(success: false)
+            }
+        }
+        
+        task.expirationHandler = {
+            // Save state for retry
+        }
+    }
+}`;
+
+  const offlineModeCode = `import PersonaLens
+import Network
+
+/// Offline mode behavior management
+class PLConnectivityManager {
+    private let monitor = NWPathMonitor()
+    private var isConnected = true
+    
+    /// Current connectivity state
+    var connectionState: ConnectionState {
+        isConnected ? .online : .offline
+    }
+    
+    /// Start monitoring network changes
+    func startMonitoring() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            self?.isConnected = path.status == .satisfied
+            
+            NotificationCenter.default.post(
+                name: .plConnectivityChanged,
+                object: self?.connectionState
+            )
+        }
+        
+        monitor.start(queue: DispatchQueue.global(qos: .utility))
+    }
+    
+    /// Check feature availability based on connectivity
+    func isFeatureAvailable(_ feature: PLFeature) -> Bool {
+        switch feature {
+        case .photoScanning, .roomClassification, .faceDetection,
+             .genderClassification, .ageClassification:
+            return true // Always available (on-device)
+            
+        case .faceClustering, .fashionGeneration, .furnitureGeneration:
+            return isConnected // Requires network
+        }
+    }
+    
+    /// Get offline-safe operation strategy
+    func getOperationStrategy(
+        for operation: PLOperation
+    ) -> OperationStrategy {
+        switch (operation, connectionState) {
+        case (.scan, _):
+            return .executeImmediately
+            
+        case (.cluster, .online):
+            return .executeImmediately
+        case (.cluster, .offline):
+            return .queueForLater
+            
+        case (.generate, .online):
+            return .executeImmediately
+        case (.generate, .offline):
+            return .showOfflineWarning
+        }
+    }
+}
+
+// MARK: - Types
+
+enum ConnectionState {
+    case online
+    case offline
+    
+    var userMessage: String {
+        switch self {
+        case .online:
+            return "Connected"
+        case .offline:
+            return "Offline - Some features unavailable"
+        }
+    }
+}
+
+enum PLFeature {
+    case photoScanning
+    case roomClassification
+    case faceDetection
+    case genderClassification
+    case ageClassification
+    case faceClustering
+    case fashionGeneration
+    case furnitureGeneration
+}
+
+enum PLOperation {
+    case scan
+    case cluster
+    case generate
+}
+
+enum OperationStrategy {
+    case executeImmediately
+    case queueForLater
+    case showOfflineWarning
+}
+
+extension Notification.Name {
+    static let plConnectivityChanged = Notification.Name("PLConnectivityChanged")
+}`;
+
+  return (
+    <DocSection id="advanced-integration">
+      <DocHeading level={1}>Phase 8: Advanced Integration</DocHeading>
+      <DocParagraph>
+        Advanced integration features for custom model injection, background processing, 
+        and offline mode handling.
+      </DocParagraph>
+
+      <DocHeading level={2} id="custom-models">Custom Model Injection</DocHeading>
+      <DocParagraph>
+        Replace bundled CoreML models with your own custom-trained versions for 
+        specialized use cases.
+      </DocParagraph>
+
+      <CodeBlock 
+        code={customModelInjectionCode} 
+        filename="PLModelRegistry.swift"
+        language="swift"
+      />
+
+      <DocCallout type="warning" title="Model Compatibility">
+        Custom models must match the expected input/output signature of the bundled models. 
+        The SDK validates compatibility at registration time.
+      </DocCallout>
+
+      <DocTable 
+        headers={['Model Type', 'Input', 'Output', 'Size']}
+        rows={[
+          ['Gender Classification', '224×224 RGB Image', 'Label + Probabilities', '~5 MB'],
+          ['Age Classification', '224×224 RGB Image', 'Label + Probabilities', '~5 MB'],
+          ['Room Classification', '224×224 RGB Image', 'Label + Confidence', '~10 MB'],
+          ['Object Detection', '416×416 RGB Image', 'Boxes + Scores', '~25 MB'],
+          ['Face Embedding', '160×160 RGB Image', '512-D Vector', '~15 MB'],
+        ]}
+      />
+
+      <DocHeading level={2} id="webhooks">Webhooks & Background Processing</DocHeading>
+      <DocParagraph>
+        Handle long-running generation requests with background task support for 
+        seamless user experience.
+      </DocParagraph>
+
+      <CodeBlock 
+        code={webhooksCallbacksCode} 
+        filename="PLBackgroundTaskManager.swift"
+        language="swift"
+      />
+
+      <DocList items={[
+        'Register background task identifier in Info.plist under BGTaskSchedulerPermittedIdentifiers',
+        'Use beginBackgroundTask for short operations (< 30 seconds)',
+        'Schedule BGProcessingTask for longer operations',
+        'Always handle expiration to save state for later resume',
+      ]} />
+
+      <DocHeading level={2} id="offline-mode">Offline Mode Behavior</DocHeading>
+      <DocParagraph>
+        PersonaLens gracefully handles offline scenarios with feature-aware degradation.
+      </DocParagraph>
+
+      <CodeBlock 
+        code={offlineModeCode} 
+        filename="PLConnectivityManager.swift"
+        language="swift"
+      />
+
+      <DocTable 
+        headers={['Feature', 'Offline', 'Online']}
+        rows={[
+          ['Photo Scanning', '✅ Available', '✅ Available'],
+          ['Room Classification', '✅ Available', '✅ Available'],
+          ['Face Detection', '✅ Available', '✅ Available'],
+          ['Gender/Age Classification', '✅ Available', '✅ Available'],
+          ['Face Clustering', '❌ Queued', '✅ Available'],
+          ['Fashion Generation', '❌ Unavailable', '✅ Available'],
+          ['Furniture Visualization', '❌ Unavailable', '✅ Available'],
+        ]}
+      />
+
+      <DocCallout type="info" title="Queued Operations">
+        Operations queued while offline are automatically executed when connectivity 
+        is restored. Subscribe to <code>.plConnectivityChanged</code> to update your UI.
+      </DocCallout>
+    </DocSection>
+  );
+};
