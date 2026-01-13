@@ -148,7 +148,7 @@ actor RoomAssetStore {
     
     private var roomIndex: [RoomType: [RoomAsset]] = [:]
     private let storage = UserDefaults.standard
-    private let indexKey = "com.personalens.roomIndex"
+    private let indexKey = "com.hyperpersonalization.roomIndex"
     
     /// Store classified room for quick retrieval
     func store(_ room: ClassifiedRoom) {
@@ -268,7 +268,7 @@ struct RoomCarouselView: View {
     }
     
     private func loadRooms() async {
-        let store = await PersonaLensSDK.shared.roomStore
+        let store = await HyperPersonalizationSDK.shared.roomStore
         rooms = await store.getBestRooms(type: roomType, limit: 10)
     }
     
@@ -276,7 +276,7 @@ struct RoomCarouselView: View {
         guard images[room.localIdentifier] == nil else { return }
         
         Task {
-            if let asset = await PersonaLensSDK.shared.roomStore
+            if let asset = await HyperPersonalizationSDK.shared.roomStore
                 .fetchAsset(localIdentifier: room.localIdentifier) {
                 
                 let image = await loadThumbnail(asset: asset)

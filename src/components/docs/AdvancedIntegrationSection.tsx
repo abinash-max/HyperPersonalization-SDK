@@ -2,7 +2,7 @@ import { CodeBlock } from '@/components/ui/CodeBlock';
 import { DocSection, DocHeading, DocParagraph, DocList, DocCallout, DocTable } from './DocSection';
 
 export const AdvancedIntegrationSection = () => {
-  const customModelInjectionCode = `import PersonaLens
+  const customModelInjectionCode = `import HyperPersonalization
 import CoreML
 
 /// Custom model injection for specialized use cases
@@ -21,7 +21,7 @@ class PLModelRegistry {
         
         customModels[type] = model
         
-        print("[PersonaLens] Registered custom model for \\(type)")
+        print("[HyperPersonalization] Registered custom model for \\(type)")
     }
     
     /// Register model from URL (compiled .mlmodelc)
@@ -117,12 +117,12 @@ struct ModelSpec {
     let outputs: [String: MLFeatureType]
 }`;
 
-  const webhooksCallbacksCode = `import PersonaLens
+  const webhooksCallbacksCode = `import HyperPersonalization
 import BackgroundTasks
 
 /// Background task management for long-running operations
 class PLBackgroundTaskManager {
-    static let taskIdentifier = "dev.personalens.generation"
+    static let taskIdentifier = "dev.hyperpersonalization.generation"
     
     /// Register background task handler
     static func registerBackgroundTasks() {
@@ -184,7 +184,7 @@ class PLBackgroundTaskManager {
         do {
             try BGTaskScheduler.shared.submit(taskRequest)
         } catch {
-            print("[PersonaLens] Failed to schedule background task: \\(error)")
+            print("[HyperPersonalization] Failed to schedule background task: \\(error)")
         }
     }
     
@@ -213,7 +213,7 @@ class PLBackgroundTaskManager {
     }
 }`;
 
-  const offlineModeCode = `import PersonaLens
+  const offlineModeCode = `import HyperPersonalization
 import Network
 
 /// Offline mode behavior management
@@ -326,8 +326,10 @@ extension Notification.Name {
 
       <DocHeading level={2} id="custom-models">Custom Model Injection</DocHeading>
       <DocParagraph>
-        Replace bundled CoreML models with your own custom-trained versions for 
-        specialized use cases.
+        HyperPersonalization comes with pre-trained AI models for gender, age, and room classification. 
+        However, if you've trained your own custom models (maybe for specific room types or demographics), 
+        you can replace the default models with your custom ones. This is useful if you need specialized 
+        classification that the default models don't handle well.
       </DocParagraph>
 
       <CodeBlock 
@@ -354,8 +356,10 @@ extension Notification.Name {
 
       <DocHeading level={2} id="webhooks">Webhooks & Background Processing</DocHeading>
       <DocParagraph>
-        Handle long-running generation requests with background task support for 
-        seamless user experience.
+        Sometimes generating personalized images takes a long time (several seconds or even minutes). 
+        If the user closes your app or switches to another app while generation is happening, the process 
+        might get interrupted. Background processing allows generation to continue even when your app 
+        is in the background, so users don't lose their progress.
       </DocParagraph>
 
       <CodeBlock 
@@ -373,7 +377,10 @@ extension Notification.Name {
 
       <DocHeading level={2} id="offline-mode">Offline Mode Behavior</DocHeading>
       <DocParagraph>
-        PersonaLens gracefully handles offline scenarios with feature-aware degradation.
+        What happens when there's no internet connection? Some features of HyperPersonalization work offline 
+        (like analyzing photos on your device), but others need internet (like generating personalized images). 
+        This section explains which features work offline and what happens when you try to use features that 
+        require internet.
       </DocParagraph>
 
       <CodeBlock 

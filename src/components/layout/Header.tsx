@@ -37,7 +37,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
           {/* GitHub link */}
           <Button variant="ghost" size="icon" asChild>
             <a 
-              href="https://github.com/personalens/sdk-ios" 
+              href="https://github.com/hyperpersonalization/sdk-ios" 
               target="_blank" 
               rel="noopener noreferrer"
             >

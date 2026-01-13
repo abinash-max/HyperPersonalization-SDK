@@ -58,7 +58,7 @@ export function IntroductionSection() {
         <><strong>Room Visualization</strong> — Place furniture in detected room scenes</>,
       ]} />
 
-      <DocHeading level={2}>Quick Installation</DocHeading>
+      <DocHeading level={2} id="installation">Quick Installation</DocHeading>
       <DocParagraph>
         Add HyperPersonalization to your project using Swift Package Manager:
       </DocParagraph>
@@ -68,7 +68,7 @@ export function IntroductionSection() {
         filename="Package.swift"
         code={`dependencies: [
     .package(
-        url: "https://github.com/personalens/sdk-ios.git",
+        url: "https://github.com/hyperpersonalization/sdk-ios.git",
         from: "2.1.0"
     )
 ]`}
@@ -78,7 +78,7 @@ export function IntroductionSection() {
         iOS 15.0+ • Swift 5.7+ • Xcode 14.0+
       </DocCallout>
 
-      <DocHeading level={2}>Basic Usage</DocHeading>
+      <DocHeading level={2} id="quick-start">Basic Usage</DocHeading>
       <DocParagraph>
         Initialize the SDK and start analyzing the user's photo library:
       </DocParagraph>
@@ -86,10 +86,10 @@ export function IntroductionSection() {
       <CodeBlock
         language="swift"
         filename="ContentView.swift"
-        code={`import PersonaLens
+        code={`import HyperPersonalization
 
 class PhotoAnalyzer {
-    let sdk = PersonaLensSDK(
+    let sdk = HyperPersonalizationSDK(
         apiKey: "your-api-key",
         config: .default
     )

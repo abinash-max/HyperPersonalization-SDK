@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Search, Book, Shield, Brain, Home, Users, Zap, Database, TestTube, Layout, Smartphone, Camera, Palette, Box, Cpu, Server, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -127,13 +128,121 @@ const phases: NavItem[] = [
 ];
 
 interface SidebarProps {
-  activeSection: string;
-  onNavigate: (sectionId: string) => void;
+  activeSection?: string;
 }
 
-export function Sidebar({ activeSection, onNavigate }: SidebarProps) {
+// Map section IDs to route paths
+const sectionToRoute: Record<string, string> = {
+  'introduction': '/introduction',
+  'installation': '/introduction',
+  'quick-start': '/introduction',
+  'gallery-access': '/permissions',
+  'permission-handling': '/permissions',
+  'denial-flow': '/permissions',
+  'model-inventory': '/model-architecture',
+  'coreml-implementation': '/model-architecture',
+  'image-pipeline': '/model-architecture',
+  'response-structure': '/model-architecture',
+  'confidence-scores': '/model-architecture',
+  'room-classification': '/room-analysis',
+  'asset-storage': '/room-analysis',
+  'low-confidence': '/room-analysis',
+  'fashion-analysis': '/human-analysis',
+  'vision-framework': '/human-analysis',
+  'face-pipeline': '/human-analysis',
+  'embeddings-api': '/human-analysis',
+  'best-face': '/human-analysis',
+  'product-mapping': '/vendor-integration',
+  'fashion-generation': '/vendor-integration',
+  'furniture-generation': '/vendor-integration',
+  'device-compatibility': '/performance',
+  'memory-management': '/performance',
+  'concurrency': '/performance',
+  'battery-impact': '/performance',
+  'privacy-manifest': '/privacy',
+  'caching': '/privacy',
+  'normalization': '/privacy',
+  'custom-models': '/advanced-integration',
+  'webhooks': '/advanced-integration',
+  'offline-mode': '/advanced-integration',
+  'test-mode': '/testing-support',
+  'logging': '/testing-support',
+  'error-codes': '/testing-support',
+  'localization': '/ui-lifecycle',
+  'cache-cleaning': '/ui-lifecycle',
+};
+
+export function Sidebar({ activeSection }: SidebarProps) {
+  const location = useLocation();
   const [expandedPhases, setExpandedPhases] = useState<string[]>(['getting-started', 'phase-1', 'phase-2']);
   const [searchQuery, setSearchQuery] = useState('');
+  const activeItemRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Determine active section from current route and hash
+  const getCurrentActiveSection = () => {
+    if (activeSection) return activeSection;
+    
+    // Check if URL has a hash
+    if (location.hash) {
+      return location.hash.substring(1);
+    }
+    
+    // Otherwise, find section based on current path
+    const path = location.pathname;
+    for (const [sectionId, route] of Object.entries(sectionToRoute)) {
+      if (route === path) {
+        return sectionId;
+      }
+    }
+    return 'introduction';
+  };
+  
+  const currentActiveSection = getCurrentActiveSection();
+
+  // Auto-expand parent phase when a child section becomes active
+  useEffect(() => {
+    const activePhase = phases.find(phase => 
+      phase.children?.some(child => {
+        const route = sectionToRoute[child.id];
+        return route === location.pathname;
+      })
+    );
+    
+    if (activePhase) {
+      setExpandedPhases(prev => {
+        if (!prev.includes(activePhase.id)) {
+          return [...prev, activePhase.id];
+        }
+        return prev;
+      });
+    }
+  }, [location.pathname]);
+
+  // Auto-scroll active item into view
+  useEffect(() => {
+    if (activeItemRef.current && navRef.current) {
+      const navElement = navRef.current;
+      const activeElement = activeItemRef.current;
+      
+      // Calculate positions
+      const navRect = navElement.getBoundingClientRect();
+      const activeRect = activeElement.getBoundingClientRect();
+      
+      // Check if active item is outside visible area
+      const isAbove = activeRect.top < navRect.top;
+      const isBelow = activeRect.bottom > navRect.bottom;
+      
+      if (isAbove || isBelow) {
+        // Scroll the active item into view smoothly
+        activeElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }
+  }, [currentActiveSection, location.pathname]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases(prev =>
@@ -178,7 +287,7 @@ export function Sidebar({ activeSection, onNavigate }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto scrollbar-thin p-3">
+      <nav ref={navRef} className="flex-1 overflow-y-auto scrollbar-thin p-3">
         {filteredPhases.map((phase) => (
           <div key={phase.id} className="mb-1">
             <button
@@ -196,18 +305,37 @@ export function Sidebar({ activeSection, onNavigate }: SidebarProps) {
             
             {expandedPhases.includes(phase.id) && phase.children && (
               <div className="ml-4 mt-1 space-y-0.5 border-l border-border pl-3">
-                {phase.children.map((child) => (
-                  <button
-                    key={child.id}
-                    onClick={() => onNavigate(child.id)}
-                    className={cn(
-                      'nav-link w-full text-left',
-                      activeSection === child.id && 'active'
-                    )}
-                  >
-                    {child.label}
-                  </button>
-                ))}
+                {phase.children.map((child) => {
+                  const route = sectionToRoute[child.id] || '/introduction';
+                  const isActive = location.pathname === route && 
+                    (location.hash === `#${child.id}` || (!location.hash && child.id === currentActiveSection) || child.id === currentActiveSection);
+                  
+                  return (
+                    <Link
+                      key={child.id}
+                      ref={isActive ? activeItemRef : null}
+                      to={`${route}#${child.id}`}
+                      onClick={(e) => {
+                        // If already on the same page, scroll to anchor instead of navigating
+                        if (location.pathname === route) {
+                          e.preventDefault();
+                          const element = document.getElementById(child.id);
+                          if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                            // Update URL hash without full navigation
+                            window.history.pushState(null, '', `${route}#${child.id}`);
+                          }
+                        }
+                      }}
+                      className={cn(
+                        'nav-link w-full text-left block',
+                        isActive && 'active'
+                      )}
+                    >
+                      {child.label}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

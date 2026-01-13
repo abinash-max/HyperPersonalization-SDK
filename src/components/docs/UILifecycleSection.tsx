@@ -2,9 +2,9 @@ import { CodeBlock } from '@/components/ui/CodeBlock';
 import { DocSection, DocHeading, DocParagraph, DocList, DocCallout, DocTable } from './DocSection';
 
 export const UILifecycleSection = () => {
-  const localizationCode = `import PersonaLens
+  const localizationCode = `import HyperPersonalization
 
-/// Localization support for PersonaLens UI strings
+/// Localization support for HyperPersonalization UI strings
 class PLLocalization {
     
     /// Get localized room type name
@@ -13,7 +13,7 @@ class PLLocalization {
         case .livingRoom:
             return NSLocalizedString(
                 "room.livingRoom",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Living Room",
                 comment: "Living room category"
@@ -21,7 +21,7 @@ class PLLocalization {
         case .bedroom:
             return NSLocalizedString(
                 "room.bedroom",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Bedroom",
                 comment: "Bedroom category"
@@ -29,7 +29,7 @@ class PLLocalization {
         case .kitchen:
             return NSLocalizedString(
                 "room.kitchen",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Kitchen",
                 comment: "Kitchen category"
@@ -37,7 +37,7 @@ class PLLocalization {
         case .bathroom:
             return NSLocalizedString(
                 "room.bathroom",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Bathroom",
                 comment: "Bathroom category"
@@ -45,7 +45,7 @@ class PLLocalization {
         case .office:
             return NSLocalizedString(
                 "room.office",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Office",
                 comment: "Office/study category"
@@ -53,7 +53,7 @@ class PLLocalization {
         case .outdoor:
             return NSLocalizedString(
                 "room.outdoor",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Outdoor",
                 comment: "Outdoor/patio category"
@@ -67,7 +67,7 @@ class PLLocalization {
         case .male:
             return NSLocalizedString(
                 "gender.male",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Men's",
                 comment: "Male fashion category"
@@ -75,7 +75,7 @@ class PLLocalization {
         case .female:
             return NSLocalizedString(
                 "gender.female",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Women's",
                 comment: "Female fashion category"
@@ -89,7 +89,7 @@ class PLLocalization {
         case .child:
             return NSLocalizedString(
                 "age.child",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Kids",
                 comment: "Children's category"
@@ -97,7 +97,7 @@ class PLLocalization {
         case .teen:
             return NSLocalizedString(
                 "age.teen",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Teens",
                 comment: "Teenagers category"
@@ -105,7 +105,7 @@ class PLLocalization {
         case .adult:
             return NSLocalizedString(
                 "age.adult",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Adults",
                 comment: "Adults category"
@@ -113,7 +113,7 @@ class PLLocalization {
         case .senior:
             return NSLocalizedString(
                 "age.senior",
-                tableName: "PersonaLens",
+                tableName: "HyperPersonalization",
                 bundle: .main,
                 value: "Seniors",
                 comment: "Seniors category"
@@ -122,10 +122,10 @@ class PLLocalization {
     }
 }
 
-// MARK: - Localizable.strings (PersonaLens.strings)
+// MARK: - Localizable.strings (HyperPersonalization.strings)
 
 /*
- English (en.lproj/PersonaLens.strings):
+ English (en.lproj/HyperPersonalization.strings):
  
  "room.livingRoom" = "Living Room";
  "room.bedroom" = "Bedroom";
@@ -143,9 +143,9 @@ class PLLocalization {
  "age.senior" = "Seniors";
  */`;
 
-  const cacheCleaningCode = `import PersonaLens
+  const cacheCleaningCode = `import HyperPersonalization
 
-/// Cache management for PersonaLens data
+/// Cache management for HyperPersonalization data
 class PLCacheManager {
     static let shared = PLCacheManager()
     
@@ -159,12 +159,12 @@ class PLCacheManager {
         ).first!
         
         cacheDirectory = cachesDirectory.appendingPathComponent(
-            "PersonaLens",
+            "HyperPersonalization",
             isDirectory: true
         )
     }
     
-    /// Clear all PersonaLens cached data
+    /// Clear all HyperPersonalization cached data
     func clearAllCache() throws {
         try clearAnalysisCache()
         try clearThumbnailCache()
@@ -173,7 +173,7 @@ class PLCacheManager {
         // Reset in-memory caches
         PLResultCache.shared.invalidateAll()
         
-        print("[PersonaLens] All caches cleared")
+        print("[HyperPersonalization] All caches cleared")
     }
     
     /// Clear analysis results cache only
@@ -267,9 +267,9 @@ class PLCacheManager {
 
 // MARK: - User-Facing API
 
-extension PersonaLens {
+extension HyperPersonalization {
     
-    /// Clear all PersonaLens data (for user privacy/reset)
+    /// Clear all HyperPersonalization data (for user privacy/reset)
     public static func clearCache() {
         do {
             try PLCacheManager.shared.clearAllCache()
@@ -287,10 +287,10 @@ extension PersonaLens {
     }
 }`;
 
-  const lifecycleManagementCode = `import PersonaLens
+  const lifecycleManagementCode = `import HyperPersonalization
 import UIKit
 
-/// App lifecycle integration for PersonaLens
+/// App lifecycle integration for HyperPersonalization
 class PLLifecycleManager {
     static let shared = PLLifecycleManager()
     
@@ -412,12 +412,12 @@ class PLLifecycleManager {
       <DocHeading level={1}>Phase 10: UI & Lifecycle</DocHeading>
       <DocParagraph>
         UI integration patterns, localization support, cache management, and app 
-        lifecycle handling for PersonaLens.
+        lifecycle handling for HyperPersonalization.
       </DocParagraph>
 
       <DocHeading level={2} id="localization">Localization</DocHeading>
       <DocParagraph>
-        PersonaLens provides localization support for all user-facing category names 
+        HyperPersonalization provides localization support for all user-facing category names 
         and labels.
       </DocParagraph>
 
@@ -440,7 +440,7 @@ class PLLifecycleManager {
       />
 
       <DocCallout type="info" title="Adding Localization">
-        Create a <code>PersonaLens.strings</code> file for each supported language in 
+        Create a <code>HyperPersonalization.strings</code> file for each supported language in 
         your project's localization directories.
       </DocCallout>
 

@@ -52,7 +52,7 @@ export const PrivacySection = () => {
 </dict>
 </plist>`;
 
-  const cachingMechanismCode = `import PersonaLens
+  const cachingMechanismCode = `import HyperPersonalization
 
 /// Local caching for analysis results
 class PLResultCache {
@@ -127,7 +127,7 @@ struct CachedResult: Codable {
     let sdkVersion: String
 }`;
 
-  const imageNormalizationCode = `import PersonaLens
+  const imageNormalizationCode = `import HyperPersonalization
 
 /// Image normalization for consistent model input
 class PLImageNormalizer {
@@ -244,14 +244,16 @@ class PLImageNormalizer {
     <DocSection id="privacy">
       <DocHeading level={1}>Phase 7: Data Handling & Privacy</DocHeading>
       <DocParagraph>
-        PersonaLens is designed with privacy-first principles. All analysis happens on-device, 
+        HyperPersonalization is designed with privacy-first principles. All analysis happens on-device, 
         and only anonymized embeddings are sent to cloud services when required.
       </DocParagraph>
 
       <DocHeading level={2} id="privacy-manifest">Apple Privacy Manifest</DocHeading>
       <DocParagraph>
-        Starting iOS 17, apps must include a Privacy Manifest declaring data usage. 
-        Copy this configuration to your project's <code>PrivacyInfo.xcprivacy</code> file.
+        Starting with iOS 17, Apple requires all apps to include a Privacy Manifest file. This file tells Apple 
+        (and users) what data your app accesses and why. If you're using HyperPersonalization, you need to add 
+        this file to your project. Copy the configuration below to a file called <code>PrivacyInfo.xcprivacy</code> 
+        in your Xcode project.
       </DocParagraph>
 
       <CodeBlock 
@@ -276,8 +278,10 @@ class PLImageNormalizer {
 
       <DocHeading level={2} id="caching">Caching Mechanism</DocHeading>
       <DocParagraph>
-        PersonaLens caches analysis results locally to avoid re-scanning the entire library 
-        on every app launch.
+        Caching means saving results so you don't have to do the same work twice. HyperPersonalization saves 
+        the results of analyzing photos (like "this is a living room" or "this person is male") on your device. 
+        This way, when you open the app again, it doesn't need to re-analyze all your photos - it just uses 
+        the saved results. This makes the app much faster and uses less battery.
       </DocParagraph>
 
       <CodeBlock 
@@ -295,8 +299,10 @@ class PLImageNormalizer {
 
       <DocHeading level={2} id="image-normalization">Image Normalization</DocHeading>
       <DocParagraph>
-        Proper image normalization ensures consistent model accuracy across different 
-        image sources and orientations.
+        Image normalization means preparing photos so they're in the right format for the AI models. 
+        Photos can have different sizes, orientations (some are rotated), and color settings. Before analyzing a photo, 
+        HyperPersonalization normalizes it (resizes, rotates, adjusts colors) so the models can process it correctly. 
+        This ensures the models work accurately regardless of how the photo was taken or stored.
       </DocParagraph>
 
       <CodeBlock 

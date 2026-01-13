@@ -6,23 +6,29 @@ export function ModelArchitectureSection() {
     <>
       <DocSection id="model-inventory">
         <span className="phase-badge mb-4">Phase 2</span>
-        <DocHeading level={1}>Model Inventory</DocHeading>
+        <DocHeading level={1}>List of On-Device AI Models</DocHeading>
         
         <DocParagraph>
-          HyperPersonalization bundles several optimized CoreML models for on-device inference. 
-          All models are quantized for efficient execution on Apple Neural Engine.
+          HyperPersonalization uses several CoreML models (CoreML is Apple's machine learning framework) that run directly on the device. 
+          All models are in CoreML format (.mlmodel files). Here's the complete list:
         </DocParagraph>
 
         <DocTable
-          headers={['Model', 'Purpose', 'Input Size', 'Output']}
+          headers={['Model Name', 'What It Does', 'Input Image Size', 'What It Returns']}
           rows={[
-            ['GenderClassifier.mlmodel', 'Classify detected faces by gender', '224×224', 'male/female + confidence'],
-            ['AgeClassifier.mlmodel', 'Estimate age range from face', '224×224', 'age bracket + confidence'],
-            ['RoomClassifier.mlmodel', 'Identify room type from scene', '299×299', 'room label + confidence'],
-            ['ObjectDetector.mlmodel', 'Detect furniture/objects in rooms', '416×416', 'bounding boxes + labels'],
-            ['FaceEmbedding.mlmodel', 'Generate 512-dim face embeddings', '112×112', 'Float32[512] vector'],
+            ['GenderClassifier.mlmodel', 'Looks at a face and determines if it\'s male or female', '224×224 pixels', 'Gender (male/female) + confidence score (0.0 to 1.0)'],
+            ['AgeClassifier.mlmodel', 'Looks at a face and estimates the age range', '224×224 pixels', 'Age range (child/teen/adult/senior) + confidence score'],
+            ['RoomClassifier.mlmodel', 'Looks at a room photo and identifies the room type', '299×299 pixels', 'Room type (living room/bedroom/kitchen/etc.) + confidence score'],
+            ['ObjectDetector.mlmodel', 'Detects furniture and objects in room photos', '416×416 pixels', 'List of detected objects with bounding boxes'],
+            ['FaceEmbedding.mlmodel', 'Creates a unique "fingerprint" (embedding) of a face', '112×112 pixels', '512 numbers (vector) representing the face'],
           ]}
         />
+
+        <DocCallout type="info" title="What is CoreML?">
+          CoreML is Apple's framework for running machine learning models on iOS devices. 
+          These models run on the device (not in the cloud), so they're fast and private. 
+          All models are already included in the HyperPersonalization SDK - you don't need to download them separately.
+        </DocCallout>
 
         <DocHeading level={2}>Model Specifications</DocHeading>
         
@@ -32,7 +38,7 @@ export function ModelArchitectureSection() {
           code={`import CoreML
 
 /// Model specifications and metadata
-enum PersonaLensModels {
+enum HyperPersonalizationModels {
     
     case genderClassifier
     case ageClassifier
@@ -81,44 +87,206 @@ enum PersonaLensModels {
       </DocSection>
 
       <DocSection id="coreml-implementation">
-        <DocHeading level={1}>CoreML Implementation</DocHeading>
+        <DocHeading level={1}>How to Use CoreML Models - Step by Step</DocHeading>
         
         <DocParagraph>
-          Access and interact with bundled CoreML models directly for custom implementations 
-          or advanced use cases beyond the standard SDK pipeline.
+          This section shows you exactly how to use each CoreML model. We'll start with the simplest example and build up.
+        </DocParagraph>
+
+        <DocHeading level={2}>Step 1: Load a CoreML Model</DocHeading>
+        <DocParagraph>
+          First, you need to load the model. The model files are already in the HyperPersonalization SDK.
         </DocParagraph>
 
         <CodeBlock
           language="swift"
-          filename="ModelManager.swift"
+          filename="LoadModel.swift"
           code={`import CoreML
 import Vision
 
-class ModelManager {
+class ModelLoader {
     
-    // Lazy-loaded model instances
-    private lazy var genderModel: VNCoreMLModel = {
+    /// Step 1: Load the Gender Classifier model
+    /// This model is already included in HyperPersonalization SDK
+    func loadGenderModel() throws -> VNCoreMLModel {
+        // Create model configuration
+        let config = MLModelConfiguration()
+        config.computeUnits = .all  // Use Neural Engine if available
+        
+        // Load the model (GenderClassifier is auto-generated from .mlmodel file)
+        let model = try GenderClassifier(configuration: config)
+        
+        // Wrap it in Vision framework for easier use
+        let visionModel = try VNCoreMLModel(for: model.model)
+        
+        return visionModel
+    }
+    
+    /// Step 2: Load the Room Classifier model
+    func loadRoomModel() throws -> VNCoreMLModel {
         let config = MLModelConfiguration()
         config.computeUnits = .all
         
-        let model = try! GenderClassifier(configuration: config)
-        return try! VNCoreMLModel(for: model.model)
-    }()
+        let model = try RoomClassifier(configuration: config)
+        return try VNCoreMLModel(for: model.model)
+    }
     
-    private lazy var roomModel: VNCoreMLModel = {
+    /// Step 3: Load the Age Classifier model
+    func loadAgeModel() throws -> VNCoreMLModel {
         let config = MLModelConfiguration()
         config.computeUnits = .all
         
-        let model = try! RoomClassifier(configuration: config)
-        return try! VNCoreMLModel(for: model.model)
-    }()
+        let model = try AgeClassifier(configuration: config)
+        return try VNCoreMLModel(for: model.model)
+    }
+}`}
+        />
+
+        <DocHeading level={2}>Step 2: Prepare Your Image for the Model</DocHeading>
+        <DocParagraph>
+          Models need images in a specific format. You need to resize the image to the exact size the model expects.
+        </DocParagraph>
+
+        <CodeBlock
+          language="swift"
+          filename="PrepareImage.swift"
+          code={`import UIKit
+import CoreML
+
+class ImagePreparer {
     
-    /// Classify gender from a face image
-    func classifyGender(faceImage: CGImage) async throws -> GenderResult {
+    /// Resize image to the exact size the model needs
+    /// Gender and Age models need 224×224 pixels
+    func prepareImageForGenderModel(_ image: UIImage) -> UIImage? {
+        return resizeImage(image, to: CGSize(width: 224, height: 224))
+    }
+    
+    /// Room model needs 299×299 pixels
+    func prepareImageForRoomModel(_ image: UIImage) -> UIImage? {
+        return resizeImage(image, to: CGSize(width: 299, height: 299))
+    }
+    
+    /// Helper function to resize any image
+    private func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage? {
+        // Create a graphics context
+        UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
+        defer { UIGraphicsEndImageContext() }
+        
+        // Draw the image in the new size
+        image.draw(in: CGRect(origin: .zero, size: size))
+        
+        // Get the resized image
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
+    
+    /// Convert UIImage to CGImage (needed for Vision framework)
+    func convertToCGImage(_ uiImage: UIImage) -> CGImage? {
+        return uiImage.cgImage
+    }
+}`}
+        />
+
+        <DocHeading level={2}>Step 3: Run the Model on Your Image</DocHeading>
+        <DocParagraph>
+          Now you can pass the prepared image to the model and get results. Here's how to use each model:
+        </DocParagraph>
+
+        <CodeBlock
+          language="swift"
+          filename="UseModels.swift"
+          code={`import CoreML
+import Vision
+
+class ModelUser {
+    private let genderModel: VNCoreMLModel
+    private let roomModel: VNCoreMLModel
+    private let ageModel: VNCoreMLModel
+    
+    init() throws {
+        // Load all models when this class is created
+        self.genderModel = try ModelLoader().loadGenderModel()
+        self.roomModel = try ModelLoader().loadRoomModel()
+        self.ageModel = try ModelLoader().loadAgeModel()
+    }
+    
+    /// Use Gender Classifier Model
+    /// Input: A face image (224×224 pixels)
+    /// Output: Gender (male/female) + confidence score
+    func classifyGender(faceImage: UIImage) async throws -> GenderResult {
+        // Step 1: Prepare the image
+        guard let resizedImage = ImagePreparer().prepareImageForGenderModel(faceImage),
+              let cgImage = resizedImage.cgImage else {
+            throw ModelError.invalidImage
+        }
+        
+        // Step 2: Create a Vision request
         let request = VNCoreMLRequest(model: genderModel)
+        request.imageCropAndScaleOption = .centerCrop  // Crop center of image
+        
+        // Step 3: Create a handler and run the model
+        let handler = VNImageRequestHandler(cgImage: cgImage)
+        try handler.perform([request])
+        
+        // Step 4: Get the results
+        guard let observations = request.results as? [VNClassificationObservation],
+              let topResult = observations.first else {
+            throw ModelError.noResults
+        }
+        
+        // Step 5: Return the result
+        return GenderResult(
+            label: topResult.identifier,        // "male" or "female"
+            confidence: topResult.confidence     // 0.0 to 1.0 (e.g., 0.95 = 95% confident)
+        )
+    }
+    
+    /// Use Room Classifier Model
+    /// Input: A room image (299×299 pixels)
+    /// Output: Room type + confidence score
+    func classifyRoom(roomImage: UIImage) async throws -> RoomResult {
+        // Step 1: Prepare the image
+        guard let resizedImage = ImagePreparer().prepareImageForRoomModel(roomImage),
+              let cgImage = resizedImage.cgImage else {
+            throw ModelError.invalidImage
+        }
+        
+        // Step 2: Create request
+        let request = VNCoreMLRequest(model: roomModel)
+        request.imageCropAndScaleOption = .scaleFill  // Fill entire image
+        
+        // Step 3: Run the model
+        let handler = VNImageRequestHandler(cgImage: cgImage)
+        try handler.perform([request])
+        
+        // Step 4: Get results (top 3 predictions)
+        guard let observations = request.results as? [VNClassificationObservation] else {
+            throw ModelError.noResults
+        }
+        
+        // Get top 3 predictions
+        let predictions = observations.prefix(3).map { observation in
+            RoomPrediction(
+                label: observation.identifier,      // "living_room", "bedroom", etc.
+                confidence: observation.confidence  // 0.0 to 1.0
+            )
+        }
+        
+        return RoomResult(predictions: Array(predictions))
+    }
+    
+    /// Use Age Classifier Model
+    /// Input: A face image (224×224 pixels)
+    /// Output: Age range + confidence score
+    func classifyAge(faceImage: UIImage) async throws -> AgeResult {
+        guard let resizedImage = ImagePreparer().prepareImageForGenderModel(faceImage),
+              let cgImage = resizedImage.cgImage else {
+            throw ModelError.invalidImage
+        }
+        
+        let request = VNCoreMLRequest(model: ageModel)
         request.imageCropAndScaleOption = .centerCrop
         
-        let handler = VNImageRequestHandler(cgImage: faceImage)
+        let handler = VNImageRequestHandler(cgImage: cgImage)
         try handler.perform([request])
         
         guard let observations = request.results as? [VNClassificationObservation],
@@ -126,51 +294,29 @@ class ModelManager {
             throw ModelError.noResults
         }
         
-        return GenderResult(
-            label: topResult.identifier,
-            confidence: topResult.confidence
+        return AgeResult(
+            ageRange: topResult.identifier,      // "child", "teen", "adult", "senior"
+            confidence: topResult.confidence      // 0.0 to 1.0
         )
     }
-    
-    /// Classify room type from scene image
-    func classifyRoom(sceneImage: CGImage) async throws -> RoomResult {
-        let request = VNCoreMLRequest(model: roomModel)
-        request.imageCropAndScaleOption = .scaleFill
-        
-        let handler = VNImageRequestHandler(cgImage: sceneImage)
-        try handler.perform([request])
-        
-        guard let observations = request.results as? [VNClassificationObservation] else {
-            throw ModelError.noResults
-        }
-        
-        // Return top 3 predictions
-        let predictions = observations.prefix(3).map { obs in
-            RoomPrediction(label: obs.identifier, confidence: obs.confidence)
-        }
-        
-        return RoomResult(predictions: Array(predictions))
-    }
 }
 
-struct GenderResult {
-    let label: String      // "male" or "female"
-    let confidence: Float  // 0.0 - 1.0
-}
-
-struct RoomResult {
-    let predictions: [RoomPrediction]
-    
-    var topPrediction: RoomPrediction? {
-        predictions.first
-    }
-}
-
-struct RoomPrediction {
-    let label: String      // "living_room", "bedroom", etc.
-    let confidence: Float
+// Error types
+enum ModelError: Error {
+    case invalidImage
+    case noResults
+    case modelLoadFailed
 }`}
         />
+
+        <DocCallout type="info" title="Understanding the Code">
+          <ul>
+            <li><strong>VNCoreMLRequest:</strong> This is how you tell Vision framework to use your CoreML model</li>
+            <li><strong>VNImageRequestHandler:</strong> This handles running the model on your image</li>
+            <li><strong>VNClassificationObservation:</strong> This contains the results (label + confidence)</li>
+            <li><strong>async/await:</strong> Model inference can take time, so we use async functions</li>
+          </ul>
+        </DocCallout>
       </DocSection>
 
       <DocSection id="image-pipeline">
@@ -313,11 +459,15 @@ class ImagePipeline {
       </DocSection>
 
       <DocSection id="response-structure">
-        <DocHeading level={1}>Model Response Structure</DocHeading>
+        <DocHeading level={1}>What Each Model Returns (Response Structure)</DocHeading>
         
         <DocParagraph>
-          Each model returns structured data with predictions, confidence scores, and 
-          additional metadata. Here are the complete response types:
+          When you run a model on an image, it returns a result. This section shows you exactly what data structure you get back from each model.
+        </DocParagraph>
+
+        <DocHeading level={2}>Gender Classifier Response</DocHeading>
+        <DocParagraph>
+          When you run the Gender Classifier, you get back:
         </DocParagraph>
 
         <CodeBlock
@@ -325,84 +475,57 @@ class ImagePipeline {
           filename="ModelResponses.swift"
           code={`import Foundation
 
-// MARK: - Classification Responses
+// MARK: - Gender Classification Result
+// Example: { gender: "male", confidence: 0.95 }
 
-struct ClassificationResult: Codable {
-    let label: String
-    let confidence: Float
-    let allPredictions: [Prediction]
-    let inferenceTimeMs: Double
+struct GenderResult {
+    let label: String      // "male" or "female"
+    let confidence: Float  // 0.0 to 1.0 (e.g., 0.95 = 95% confident it's male)
+}
+
+// Example usage:
+// let result = GenderResult(label: "male", confidence: 0.95)
+// print(result.label)        // Prints: "male"
+// print(result.confidence)   // Prints: 0.95
+
+// MARK: - Age Classification Result
+// Example: { ageRange: "adult", confidence: 0.87 }
+
+struct AgeResult {
+    let ageRange: String   // "child", "teen", "adult", or "senior"
+    let confidence: Float  // 0.0 to 1.0
+}
+
+// Example usage:
+// let result = AgeResult(ageRange: "adult", confidence: 0.87)
+// print(result.ageRange)     // Prints: "adult"
+// print(result.confidence)   // Prints: 0.87
+
+// MARK: - Room Classification Result
+// Example: { roomType: "living_room", confidence: 0.92, alternatives: [...] }
+
+struct RoomResult {
+    let predictions: [RoomPrediction]  // Top 3 predictions
     
-    struct Prediction: Codable {
-        let label: String
-        let confidence: Float
+    // The best prediction (highest confidence)
+    var topPrediction: RoomPrediction? {
+        return predictions.first
     }
 }
 
-// MARK: - Gender Classification
-
-struct GenderClassificationResult: Codable {
-    let gender: Gender
-    let confidence: Float
-    let rawProbabilities: GenderProbabilities
-    
-    enum Gender: String, Codable {
-        case male
-        case female
-    }
-    
-    struct GenderProbabilities: Codable {
-        let male: Float
-        let female: Float
-    }
+struct RoomPrediction {
+    let label: String      // "living_room", "bedroom", "kitchen", "dining_room", etc.
+    let confidence: Float  // 0.0 to 1.0
 }
 
-// MARK: - Age Classification
-
-struct AgeClassificationResult: Codable {
-    let ageRange: AgeRange
-    let confidence: Float
-    let estimatedAge: Int  // Midpoint of range
-    
-    enum AgeRange: String, Codable {
-        case child = "0-12"
-        case teen = "13-19"
-        case youngAdult = "20-35"
-        case adult = "36-55"
-        case senior = "56+"
-    }
-}
-
-// MARK: - Room Classification
-
-struct RoomClassificationResult: Codable {
-    let roomType: RoomType
-    let confidence: Float
-    let alternativePredictions: [RoomPrediction]
-    let sceneAttributes: SceneAttributes
-    
-    enum RoomType: String, Codable, CaseIterable {
-        case livingRoom = "living_room"
-        case bedroom = "bedroom"
-        case kitchen = "kitchen"
-        case bathroom = "bathroom"
-        case diningRoom = "dining_room"
-        case office = "office"
-        case outdoor = "outdoor"
-        case other = "other"
-    }
-    
-    struct RoomPrediction: Codable {
-        let roomType: RoomType
-        let confidence: Float
-    }
-    
-    struct SceneAttributes: Codable {
-        let brightness: Float      // 0-1, dark to bright
-        let clutterLevel: Float    // 0-1, minimal to cluttered
-        let estimatedArea: String  // "small", "medium", "large"
-    }
-}
+// Example usage:
+// let prediction1 = RoomPrediction(label: "living_room", confidence: 0.92)
+// let prediction2 = RoomPrediction(label: "bedroom", confidence: 0.05)
+// let prediction3 = RoomPrediction(label: "kitchen", confidence: 0.03)
+// 
+// let result = RoomResult(predictions: [prediction1, prediction2, prediction3])
+// print(result.topPrediction?.label)      // Prints: "living_room"
+// print(result.topPrediction?.confidence)  // Prints: 0.92
 
 // MARK: - Object Detection
 
@@ -452,91 +575,146 @@ struct FaceEmbeddingResult: Codable {
       </DocSection>
 
       <DocSection id="confidence-scores">
-        <DocHeading level={1}>Confidence Score Standards</DocHeading>
+        <DocHeading level={1}>Confidence Scores - When to Accept or Reject Images</DocHeading>
         
         <DocParagraph>
-          Understanding confidence thresholds is critical for making reliable personalization 
-          decisions. The SDK provides recommended thresholds based on extensive testing.
+          Every model returns a <strong>confidence score</strong> (a number between 0.0 and 1.0). 
+          This tells you how sure the model is about its prediction. 
+          <strong>0.95 means 95% confident</strong>, <strong>0.50 means 50% confident</strong> (basically guessing).
         </DocParagraph>
 
-        <DocHeading level={2}>Recommended Thresholds</DocHeading>
+        <DocParagraph>
+          You need to decide: <strong>What confidence score is good enough to use?</strong> 
+          If the score is too low, the model might be wrong, and you'll show incorrect personalization to users.
+        </DocParagraph>
+
+        <DocHeading level={2}>Recommended Confidence Thresholds</DocHeading>
+        <DocParagraph>
+          Based on testing, here are the recommended thresholds for each model:
+        </DocParagraph>
 
         <DocTable
-          headers={['Model', 'High Confidence', 'Acceptable', 'Reject']}
+          headers={['Model', 'Ideal Score (Use This)', 'Acceptable Score (OK to Use)', 'Reject (Too Low)']}
           rows={[
-            ['Gender Classifier', '≥ 0.90', '0.75 - 0.90', '< 0.75'],
-            ['Age Classifier', '≥ 0.85', '0.70 - 0.85', '< 0.70'],
-            ['Room Classifier', '≥ 0.80', '0.60 - 0.80', '< 0.60'],
-            ['Object Detector', '≥ 0.70', '0.50 - 0.70', '< 0.50'],
-            ['Face Quality', '≥ 0.80', '0.65 - 0.80', '< 0.65'],
+            ['Gender Classifier', '0.90 or higher (90%+)', '0.75 to 0.90 (75-90%)', 'Below 0.75 (reject)'],
+            ['Age Classifier', '0.85 or higher (85%+)', '0.70 to 0.85 (70-85%)', 'Below 0.70 (reject)'],
+            ['Room Classifier', '0.80 or higher (80%+)', '0.60 to 0.80 (60-80%)', 'Below 0.60 (reject)'],
+            ['Face Quality', '0.80 or higher (80%+)', '0.65 to 0.80 (65-80%)', 'Below 0.65 (reject)'],
           ]}
         />
 
-        <DocHeading level={2}>Implementing Threshold Logic</DocHeading>
+        <DocHeading level={2}>How to Check Confidence Scores in Code</DocHeading>
+        <DocParagraph>
+          Here's how to check if a result is good enough to use:
+        </DocParagraph>
 
         <CodeBlock
           language="swift"
-          filename="ConfidenceManager.swift"
-          code={`import PersonaLens
+          filename="CheckConfidence.swift"
+          code={`import Foundation
 
-struct ConfidenceThresholds {
-    /// Minimum confidence to accept a result
-    let acceptanceThreshold: Float
+/// Check if a gender classification result is good enough to use
+func shouldUseGenderResult(_ result: GenderResult) -> Bool {
+    // Reject if confidence is below 0.75 (75%)
+    if result.confidence < 0.75 {
+        print("❌ REJECTED: Gender confidence too low (\\(result.confidence))")
+        return false
+    }
     
-    /// Minimum confidence to use for high-priority features
-    let highConfidenceThreshold: Float
-    
-    /// Below this, the result should be discarded
-    let rejectionThreshold: Float
-    
-    static let gender = ConfidenceThresholds(
-        acceptanceThreshold: 0.75,
-        highConfidenceThreshold: 0.90,
-        rejectionThreshold: 0.75
-    )
-    
-    static let room = ConfidenceThresholds(
-        acceptanceThreshold: 0.60,
-        highConfidenceThreshold: 0.80,
-        rejectionThreshold: 0.60
-    )
-    
-    static let faceQuality = ConfidenceThresholds(
-        acceptanceThreshold: 0.65,
-        highConfidenceThreshold: 0.80,
-        rejectionThreshold: 0.65
-    )
+    // Accept if confidence is 0.75 or higher
+    print("✅ ACCEPTED: Gender confidence is \\(result.confidence)")
+    return true
 }
 
-enum ConfidenceLevel {
-    case high
-    case acceptable
-    case rejected
+/// Check if a room classification result is good enough to use
+func shouldUseRoomResult(_ result: RoomResult) -> Bool {
+    guard let topPrediction = result.topPrediction else {
+        print("❌ REJECTED: No room prediction found")
+        return false
+    }
     
-    init(score: Float, thresholds: ConfidenceThresholds) {
-        if score >= thresholds.highConfidenceThreshold {
-            self = .high
-        } else if score >= thresholds.acceptanceThreshold {
-            self = .acceptable
-        } else {
-            self = .rejected
+    // Reject if confidence is below 0.60 (60%)
+    if topPrediction.confidence < 0.60 {
+        print("❌ REJECTED: Room confidence too low (\\(topPrediction.confidence))")
+        return false
+    }
+    
+    // Accept if confidence is 0.60 or higher
+    print("✅ ACCEPTED: Room confidence is \\(topPrediction.confidence)")
+    return true
+}
+
+/// Check if an age classification result is good enough to use
+func shouldUseAgeResult(_ result: AgeResult) -> Bool {
+    // Reject if confidence is below 0.70 (70%)
+    if result.confidence < 0.70 {
+        print("❌ REJECTED: Age confidence too low (\\(result.confidence))")
+        return false
+    }
+    
+    print("✅ ACCEPTED: Age confidence is \\(result.confidence)")
+    return true
+}
+
+/// Complete example: Check all results before using them
+func processImageResults(
+    genderResult: GenderResult,
+    ageResult: AgeResult,
+    roomResult: RoomResult?
+) {
+    // Check gender
+    guard shouldUseGenderResult(genderResult) else {
+        print("Skipping this image - gender confidence too low")
+        return
+    }
+    
+    // Check age
+    guard shouldUseAgeResult(ageResult) else {
+        print("Skipping this image - age confidence too low")
+        return
+    }
+    
+    // Check room (if available)
+    if let roomResult = roomResult {
+        guard shouldUseRoomResult(roomResult) else {
+            print("Skipping this image - room confidence too low")
+            return
         }
     }
-}
-
-// Usage example
-func evaluateResult(_ result: GenderClassificationResult) -> ConfidenceLevel {
-    return ConfidenceLevel(
-        score: result.confidence,
-        thresholds: .gender
-    )
+    
+    // All checks passed - use this image for personalization!
+    print("✅ All confidence scores are good - using this image")
+    // Continue with personalization...
 }`}
         />
 
-        <DocCallout type="warning" title="Rejection Threshold">
-          Images below the rejection threshold (typically <code>0.75</code> for faces, 
-          <code>0.60</code> for rooms) should be excluded from personalization entirely. 
-          Using low-confidence results degrades the user experience significantly.
+        <DocHeading level={2}>Why These Thresholds Matter</DocHeading>
+        <DocParagraph>
+          <strong>If you use images with low confidence scores:</strong>
+        </DocParagraph>
+        <DocList items={[
+          'You might show a man women\'s clothing (if gender classification was wrong)',
+          'You might show a bed in a kitchen (if room classification was wrong)',
+          'Users will see incorrect personalization and lose trust',
+        ]} />
+
+        <DocParagraph>
+          <strong>If you only use images with high confidence scores:</strong>
+        </DocParagraph>
+        <DocList items={[
+          'Personalization will be accurate',
+          'Users will see relevant products',
+          'Better user experience overall',
+        ]} />
+
+        <DocCallout type="warning" title="Important Rule">
+          <strong>Always reject images below the threshold.</strong> 
+          It's better to have fewer personalized images that are accurate, 
+          than many images that might be wrong. 
+          <br/><br/>
+          <strong>Gender:</strong> Reject if confidence &lt; 0.75<br/>
+          <strong>Age:</strong> Reject if confidence &lt; 0.70<br/>
+          <strong>Room:</strong> Reject if confidence &lt; 0.60
         </DocCallout>
       </DocSection>
     </>

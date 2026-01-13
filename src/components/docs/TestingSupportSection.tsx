@@ -2,7 +2,7 @@ import { CodeBlock } from '@/components/ui/CodeBlock';
 import { DocSection, DocHeading, DocParagraph, DocList, DocCallout, DocTable } from './DocSection';
 
 export const TestingSupportSection = () => {
-  const mockTestModeCode = `import PersonaLens
+  const mockTestModeCode = `import HyperPersonalization
 
 /// Debug mode configuration for development and testing
 class PLDebugConfiguration {
@@ -16,7 +16,7 @@ class PLDebugConfiguration {
         isDebugModeEnabled = true
         mockDataProvider = provider
         
-        print("[PersonaLens] Debug mode enabled with mock data")
+        print("[HyperPersonalization] Debug mode enabled with mock data")
     }
     
     /// Disable debug mode
@@ -106,21 +106,21 @@ class PLMockDataProvider {
         try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         
         return GenerationResult(
-            generatedImageURL: URL(string: "https://mock.personalens.dev/generated/mock_result.jpg")!,
+            generatedImageURL: URL(string: "https://mock.hyperpersonalization.dev/generated/mock_result.jpg")!,
             processingTime: delay,
             confidence: 0.88
         )
     }
 }`;
 
-  const loggingTracingCode = `import PersonaLens
+  const loggingTracingCode = `import HyperPersonalization
 import os.log
 
 /// Comprehensive logging for debugging
 class PLLogger {
     static let shared = PLLogger()
     
-    private let subsystem = "dev.personalens.sdk"
+    private let subsystem = "dev.hyperpersonalization.sdk"
     
     // Log categories
     private lazy var scanLog = OSLog(subsystem: subsystem, category: "Scan")
@@ -254,9 +254,9 @@ enum ProcessingStage: String {
     case failed = "Failed"
 }`;
 
-  const errorCodeReferenceCode = `import PersonaLens
+  const errorCodeReferenceCode = `import HyperPersonalization
 
-/// PersonaLens Error Codes
+/// HyperPersonalization Error Codes
 enum PLErrorCode: String, Error {
     // Permission Errors (1xx)
     case permissionDenied = "ERR_PERMISSION_DENIED"
@@ -357,7 +357,10 @@ enum PLErrorCode: String, Error {
 
       <DocHeading level={2} id="mock-test-mode">Mocking & Test Mode</DocHeading>
       <DocParagraph>
-        Enable debug mode to develop your UI without waiting for real ML processing.
+        When developing your app, you don't want to wait for real photo analysis every time you test. 
+        Mock mode lets you use fake (mock) data that simulates what real analysis would return. This makes 
+        development much faster - you can test your UI and features without actually processing photos. 
+        Mock data includes realistic results like "this is a living room with 92% confidence" or "this person is male".
       </DocParagraph>
 
       <CodeBlock 
@@ -380,7 +383,10 @@ enum PLErrorCode: String, Error {
 
       <DocHeading level={2} id="logging-tracing">Logging & Tracing</DocHeading>
       <DocParagraph>
-        Comprehensive logging with OSLog integration for debugging the full asset lifecycle.
+        When something goes wrong, you need to know what happened. Logging means recording what the app is doing 
+        so you can debug problems. HyperPersonalization logs important events like "started analyzing photo", 
+        "found 3 faces", "classification confidence: 0.95", etc. These logs help you understand what's happening 
+        and fix issues when they occur.
       </DocParagraph>
 
       <CodeBlock 
@@ -401,7 +407,7 @@ enum PLErrorCode: String, Error {
 
       <DocHeading level={2} id="error-reference">Error Code Reference</DocHeading>
       <DocParagraph>
-        Complete reference of all PersonaLens error codes with troubleshooting guidance.
+        Complete reference of all HyperPersonalization error codes with troubleshooting guidance.
       </DocParagraph>
 
       <CodeBlock 

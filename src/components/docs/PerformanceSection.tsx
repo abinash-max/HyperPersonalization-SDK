@@ -2,7 +2,7 @@ import { CodeBlock } from '@/components/ui/CodeBlock';
 import { DocSection, DocHeading, DocParagraph, DocList, DocCallout, DocTable } from './DocSection';
 
 export const PerformanceSection = () => {
-  const memoryManagementCode = `import PersonaLens
+  const memoryManagementCode = `import HyperPersonalization
 
 /// Memory-efficient image processing
 class PLImageProcessor {
@@ -80,7 +80,7 @@ class PLImageProcessor {
     }
 }`;
 
-  const concurrencyCode = `import PersonaLens
+  const concurrencyCode = `import HyperPersonalization
 
 /// Thread-safe scanning coordinator using Swift Concurrency
 actor PLScanCoordinator {
@@ -183,7 +183,7 @@ enum ScanProgress: Sendable {
     }
 }`;
 
-  const batteryOptimizationCode = `import PersonaLens
+  const batteryOptimizationCode = `import HyperPersonalization
 
 /// Battery-aware scanning configuration
 class PLBatteryOptimizer {
@@ -272,13 +272,15 @@ enum PowerMode {
     <DocSection id="performance">
       <DocHeading level={1}>Phase 6: Performance & Optimization</DocHeading>
       <DocParagraph>
-        Optimize PersonaLens for production deployments with device-specific tuning, 
+        Optimize HyperPersonalization for production deployments with device-specific tuning, 
         memory management, and battery-conscious scanning strategies.
       </DocParagraph>
 
       <DocHeading level={2} id="device-compatibility">Device Compatibility & Benchmarks</DocHeading>
       <DocParagraph>
-        PersonaLens is optimized for a wide range of iOS devices with adaptive performance scaling.
+        HyperPersonalization works on different iPhone models, but performance varies based on the device's capabilities. 
+        Newer iPhones with better processors (like A15, A16, A17) will process images faster than older models. 
+        The SDK automatically adjusts its behavior based on your device's capabilities to provide the best experience.
       </DocParagraph>
 
       <DocTable 
@@ -294,13 +296,15 @@ enum PowerMode {
       />
 
       <DocCallout type="info" title="Minimum Requirements">
-        PersonaLens requires iOS 15.0+ and devices with A13 Bionic or newer. Older devices 
+        HyperPersonalization requires iOS 15.0+ and devices with A13 Bionic or newer. Older devices 
         may experience degraded performance or may not support all features.
       </DocCallout>
 
       <DocHeading level={2} id="memory-management">Memory Management</DocHeading>
       <DocParagraph>
-        Efficient memory management prevents crashes when processing large photo libraries.
+        When processing hundreds or thousands of photos, your app can run out of memory and crash. 
+        HyperPersonalization handles this by processing photos in small batches and releasing memory after each batch. 
+        This section shows you how the SDK manages memory efficiently to prevent crashes.
       </DocParagraph>
 
       <CodeBlock 
@@ -318,7 +322,10 @@ enum PowerMode {
 
       <DocHeading level={2} id="concurrency">Concurrency & Thread Safety</DocHeading>
       <DocParagraph>
-        Swift Concurrency with Actors ensures thread-safe scanning without blocking the UI.
+        Concurrency means doing multiple things at the same time. HyperPersonalization can process multiple photos 
+        simultaneously to speed things up. However, you need to be careful to avoid crashes when multiple parts 
+        of your code try to access the same data at once. This section explains how the SDK safely handles 
+        multiple operations running at the same time without blocking your app's UI.
       </DocParagraph>
 
       <CodeBlock 
@@ -334,7 +341,9 @@ enum PowerMode {
 
       <DocHeading level={2} id="battery-impact">Battery Impact & Optimization</DocHeading>
       <DocParagraph>
-        Intelligent power management adapts scanning behavior based on device state.
+        Processing photos uses battery power. HyperPersonalization automatically adjusts how aggressively it processes 
+        photos based on your device's battery level and whether it's charging. When the battery is low, it processes 
+        fewer photos at a time to save battery. When charging, it can process more photos faster.
       </DocParagraph>
 
       <CodeBlock 
