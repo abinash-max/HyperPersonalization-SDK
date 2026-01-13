@@ -11,6 +11,7 @@ interface PageNavItem {
 // Define all pages in order
 const pages: PageNavItem[] = [
   { path: '/introduction', title: 'Introduction', description: 'Get started with HyperPersonalization' },
+  { path: '/usage', title: 'Usage', description: 'Initialize SDK and run personalization service' },
   { path: '/permissions', title: 'Permissions', description: 'Gallery access and permission handling' },
   { path: '/model-architecture', title: 'Model Architecture', description: 'CoreML models and implementation' },
   { path: '/room-analysis', title: 'Room Analysis', description: 'Room classification and storage' },
@@ -98,4 +99,5 @@ export function PageNavigation({ currentPath }: PageNavigationProps) {
     </div>
   );
 }
+
 

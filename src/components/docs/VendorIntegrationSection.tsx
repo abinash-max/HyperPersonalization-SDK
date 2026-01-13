@@ -522,530 +522,288 @@ enum ImageError: Error {
         ]}
       />
 
-      <DocHeading level={2} id="fashion-generation">Step 2: Generation of Personalization Results (Fashion)</DocHeading>
+      <DocHeading level={2} id="fashion-generation">4. Generate Fashion Try-On</DocHeading>
       <DocParagraph>
-        After you have:
-      </DocParagraph>
-      <DocList items={[
-        '✅ Best face images (male, female, kids) from Step 5 of Human Analysis',
-        '✅ Product images from vendor site (from Step 1 above)',
-      ]} />
-      <DocParagraph>
-        You can now <strong>generate personalized try-on images</strong> by combining them.
+        Visualize a garment on a user.
       </DocParagraph>
 
-      <DocParagraph>
-        <strong>How it works:</strong>
-      </DocParagraph>
-      <DocList items={[
-        '1. Take the best female face image',
-        '2. Take a product image from the female fashion section',
-        '3. Pass both images + product category to the generation API',
-        '4. API returns a generated image showing the product on the person',
-      ]} />
+      <DocHeading level={3}>Code Breakdown</DocHeading>
 
       <DocParagraph>
-        Here's what the code below does, step by step:
+        <strong>1. Call the Generation Function</strong>
       </DocParagraph>
-      <DocList items={[
-        '1. Validate inputs: Check that product category is a fashion category (not furniture)',
-        '2. Prepare face image: Load best face image, resize to 1024×1024, convert to JPEG data',
-        '3. Prepare product image: Resize product image to 1024×1024, convert to JPEG data',
-        '4. Create API request: Combine face image data, product image URL, category, and options into request',
-        '5. Call generation API: Send request to generation API endpoint',
-        '6. Get response: Receive generated image URL, processing time, and confidence score',
-        '7. Return result: Return GenerationResult with URL of generated try-on image',
-      ]} />
-
-      <DocHeading level={3}>Part 1: Main Generation Function</DocHeading>
-      <CodeBlock 
-        code={`import Foundation
-import UIKit
-
-/// Generate personalized fashion try-on images
-class FashionGenerationService {
-    private let apiClient: GenerationAPIClient
-    
-    /// Generate try-on image
-    /// Input: Best face image + Product image + Category
-    /// Output: Generated image showing product on the person
-    func generateFashionTryOn(
-        bestFace: SelectedFace,        // Best face from clustering (male/female/kids)
-        product: ProductWithImage,     // Product image from vendor site
-        category: String               // "male_fashion", "female_fashion", or "kids_fashion"
-    ) async throws -> GenerationResult {
-        
-        // Step 1: Prepare the best face image
-        guard let faceImageData = try? await prepareFaceImage(bestFace) else {
-            throw GenerationError.faceImagePreparationFailed
-        }
-        
-        // Step 2: Prepare the product image
-        guard let productImageData = try? await prepareProductImage(product) else {
-            throw GenerationError.productImagePreparationFailed
-        }
-        
-        // Step 3: Create API request
-        let request = FashionGenerationRequest(
-            faceImageData: faceImageData,
-            productImageURL: product.imageURL,
-            category: category,
-            options: GenerationOptions.default
-        )
-        
-        // Step 4: Call generation API
-        let response = try await apiClient.generateFashion(request)
-        
-        // Step 5: Return the generated image
-        return GenerationResult(
-            generatedImageURL: response.resultURL,
-            processingTime: response.processingTime,
-            confidence: response.confidence
-        )
-    }`} 
-        filename="FashionGenerationService.swift"
+      <CodeBlock
         language="swift"
-      />
-
-      <DocHeading level={3}>Part 2: Image Preparation</DocHeading>
-      <CodeBlock 
-        code={`    /// Prepare face image for API (resize, compress, etc.)
-    private func prepareFaceImage(_ face: SelectedFace) async throws -> Data {
-        // Load the face image
-        guard let image = try? await loadImage(assetId: face.assetId) else {
-            throw GenerationError.faceImageLoadFailed
-        }
-        
-        // Resize to optimal size (1024×1024 for best quality)
-        let resized = image.resized(to: CGSize(width: 1024, height: 1024))
-        
-        // Convert to JPEG with high quality
-        guard let data = resized.jpegData(compressionQuality: 0.9) else {
-            throw GenerationError.imageEncodingFailed
-        }
-        
-        return data
+        filename="FashionGeneration.swift"
+        code={`sdk.generateFashion(
+    thumbnailImg: userPhotoImage,     // UIImage of the user
+    garmentImageUrl: "https://example.com/shirt.jpg", // URL of the garment image
+    productType: "upper_body",        // "upper_body", "lower_body", "dresses"
+    completion: { result in
+        // Handle the result
     }
-    
-    /// Prepare product image for API
-    private func prepareProductImage(_ product: ProductWithImage) async throws -> Data {
-        // Product image is already loaded
-        let resized = product.image.resized(to: CGSize(width: 1024, height: 1024))
-        
-        guard let data = resized.jpegData(compressionQuality: 0.9) else {
-            throw GenerationError.imageEncodingFailed
-        }
-        
-        return data
-    }
-}`}
-        filename="FashionGenerationService.swift"
-        language="swift"
+)`}
       />
-
-      <DocHeading level={3}>Part 3: Request/Response Structures</DocHeading>
-      <CodeBlock 
-        code={`/// API Request structure
-struct FashionGenerationRequest: Codable {
-    let faceImageData: Data        // Best face image (as binary data)
-    let productImageURL: URL       // Product image URL from vendor
-    let category: String           // "male_fashion", "female_fashion", "kids_fashion"
-    let options: GenerationOptions
-}
-
-struct GenerationOptions: Codable {
-    let preserveBackground: Bool
-    let enhanceLighting: Bool
-    
-    static let \`default\` = GenerationOptions(
-        preserveBackground: true,
-        enhanceLighting: true
-    )
-}
-
-/// API Response structure
-struct GenerationAPIResponse: Codable {
-    let resultURL: URL             // URL of generated image
-    let processingTime: TimeInterval
-    let confidence: Float          // Quality score (0.0-1.0)
-}
-
-/// Result structure
-struct GenerationResult {
-    let generatedImageURL: URL
-    let processingTime: TimeInterval
-    let confidence: Float
-}
-
-enum GenerationError: Error {
-    case faceImagePreparationFailed
-    case productImagePreparationFailed
-    case faceImageLoadFailed
-    case imageEncodingFailed
-}`} 
-        filename="FashionGenerationService.swift"
-        language="swift"
-      />
-
-      <DocCallout type="info" title="Image Requirements">
-        For best results, face images should be at least 512×512px with clear facial 
-        features. Product images should have transparent or solid backgrounds.
-      </DocCallout>
-
-      <DocHeading level={2} id="generation-errors">Step 4: How to Handle Generation Errors</DocHeading>
-      <DocParagraph>
-        When generation fails, you need to handle errors properly. This section shows:
-        <strong>what error the developer sees</strong> and <strong>what message to show the user in the UI</strong>.
-      </DocParagraph>
-
-      <DocParagraph>
-        Here's what the code below does, step by step:
-      </DocParagraph>
       <DocList items={[
-        '1. Try generation: Attempt to generate try-on image',
-        '2. Check result quality: Validate that generated image confidence is above 0.5',
-        '3. Map API errors: Convert API errors to user-friendly error types',
-        '4. Handle face errors: If face not detected, return faceNotClear error',
-        '5. Handle product errors: If product image invalid, return invalidProduct error',
-        '6. Log for developer: Print detailed error messages to console with error codes',
-        '7. Show to user: Display friendly error messages in UI with suggested actions',
-        '8. Provide actions: Suggest what user should do (select different photo, retry, etc.)',
+        'thumbnailImg: userPhotoImage — The user\'s photo (UIImage) showing their face/body',
+        'garmentImageUrl: "https://example.com/shirt.jpg" — URL of the clothing product image to try on',
+        'productType: "upper_body" — Type of clothing: "upper_body", "lower_body", or "dresses"',
+        'completion: { result in ... } — Callback that receives the result',
       ]} />
 
-      <DocHeading level={3}>Part 1: Error Handling Extension</DocHeading>
-      <CodeBlock 
-        code={`import Foundation
+      <DocParagraph>
+        <strong>2. Handle Success Result</strong>
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="FashionGeneration.swift"
+        code={`case .success(let imageResult):
+    if let generatedImage = imageResult.resultImage {
+        // Display the generated image
+        imageView.image = generatedImage
+    }`}
+      />
+      <DocList items={[
+        'If generation succeeds, imageResult contains the result',
+        'imageResult.resultImage is the combined image (user + garment)',
+        'Assign it to imageView.image to display',
+      ]} />
 
-/// Error handling for generation API
-extension FashionGenerationService {
-    
-    /// Generate with comprehensive error handling
-    func generateTryOnSafely(
-        bestFace: SelectedFace,
-        product: ProductWithImage
-    ) async -> Result<GenerationResult, GenerationError> {
-        do {
-            // Try to generate
-            let result = try await generateFashionTryOn(
-                bestFace: bestFace,
-                product: product,
-                category: product.category
-            )
-            
-            // Check if result quality is good enough
-            if result.confidence < 0.5 {
-                return .failure(.lowQualityResult(confidence: result.confidence))
+      <DocParagraph>
+        <strong>3. Handle Failure Result</strong>
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="FashionGeneration.swift"
+        code={`case .failure(let error):
+    print("Generation failed: \\(error)")`}
+      />
+      <DocList items={[
+        'If generation fails, handle the error',
+        'Print or show an error message to the user',
+      ]} />
+
+      <DocHeading level={3}>Step-by-step flow</DocHeading>
+      <DocList items={[
+        'Prepare inputs: User photo (userPhotoImage), Garment product image URL ("https://example.com/shirt.jpg"), Product type ("upper_body")',
+        'Call generateFashion(): SDK downloads the garment image from the URL, Analyzes the user photo (detects face/body), Places the garment on the user, Generates a combined image',
+        'Receive result: Success: Get the generated image and display it, Failure: Handle the error',
+      ]} />
+
+      <DocHeading level={3}>Complete example with context</DocHeading>
+      <CodeBlock
+        language="swift"
+        filename="FashionGeneration.swift"
+        code={`// Step 1: You have a user photo from Phase 4 (Human Analysis)
+let userPhotoImage: UIImage = ... // Best face image (male/female/kids)
+
+// Step 2: You have a garment product URL from Phase 5 (Vendor Integration)
+let shirtUrl = "https://vendor-site.com/products/shirt-456.jpg"
+
+// Step 3: Generate the try-on visualization
+sdk.generateFashion(
+    thumbnailImg: userPhotoImage,     // User's photo
+    garmentImageUrl: shirtUrl,        // Garment product image URL
+    productType: "upper_body",        // Type of clothing
+    completion: { result in
+        switch result {
+        case .success(let imageResult):
+            if let generatedImage = imageResult.resultImage {
+                // Success! Show the user wearing the shirt
+                imageView.image = generatedImage
+                print("✅ Fashion try-on generated!")
+            } else {
+                print("⚠️ No image returned")
             }
             
-            return .success(result)
+        case .failure(let error):
+            // Handle errors
+            print("❌ Generation failed: \\(error)")
+            // Show error message to user
+            showError("Could not generate try-on. Please try again.")
+        }
+    }
+)`}
+      />
+
+      <DocHeading level={3}>Product types</DocHeading>
+      <DocList items={[
+        '"upper_body" — Shirts, t-shirts, jackets, tops',
+        '"lower_body" — Pants, jeans, skirts, shorts',
+        '"dresses" — Dresses, gowns, one-piece garments',
+      ]} />
+
+      <DocHeading level={3}>What this does</DocHeading>
+      <DocList items={[
+        'Takes a user photo (face/body)',
+        'Takes a garment product image URL',
+        'Combines them to show the garment on the user',
+        'Returns a new image showing the result',
+      ]} />
+
+      <DocHeading level={3}>Use cases</DocHeading>
+      <DocList items={[
+        'Virtual try-on: Show how a shirt looks on the user',
+        'Product visualization: Help users see products on themselves',
+        'Shopping experience: Let users try on items before buying',
+      ]} />
+
+      <DocHeading level={3}>Summary</DocHeading>
+      <DocList items={[
+        'Provide user photo, garment product URL, and product type',
+        'SDK generates a combined image',
+        'Display the result or handle errors',
+      ]} />
+
+      <DocParagraph>
+        This is typically used after:
+      </DocParagraph>
+      <DocList items={[
+        'Phase 4: You\'ve analyzed faces and have best face images (male/female/kids)',
+        'Phase 5: You\'ve integrated vendor products and have product URLs',
+      ]} />
+
+      <DocParagraph>
+        The SDK handles the image processing and garment placement automatically.
+      </DocParagraph>
+
+      <DocHeading level={2} id="furniture-generation">3. Generate Furniture Visualization</DocHeading>
+      <DocParagraph>
+        Place a furniture item into a room image.
+      </DocParagraph>
+
+      <DocHeading level={3}>Code Breakdown</DocHeading>
+
+      <DocParagraph>
+        <strong>1. Call the Generation Function</strong>
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="FurnitureGeneration.swift"
+        code={`sdk.generateFurniture(
+    thumbnailImg: userRoomImage,      // UIImage of the room
+    roomType: "living_room",          // "bedroom", "living_room", "dining_room"
+    objectUrl: "https://example.com/sofa.jpg", // URL of the furniture product image
+    completion: { result in
+        // Handle the result
+    }
+)`}
+      />
+      <DocList items={[
+        'thumbnailImg: userRoomImage — The room photo (UIImage) where furniture will be placed',
+        'roomType: "living_room" — Room type: "bedroom", "living_room", or "dining_room"',
+        'objectUrl: "https://example.com/sofa.jpg" — URL of the furniture product image to place',
+        'completion: { result in ... } — Callback that receives the result',
+      ]} />
+
+      <DocParagraph>
+        <strong>2. Handle Success Result</strong>
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="FurnitureGeneration.swift"
+        code={`case .success(let imageResult):
+    if let generatedImage = imageResult.resultImage {
+        // Display the generated image
+        imageView.image = generatedImage
+    }`}
+      />
+      <DocList items={[
+        'If generation succeeds, imageResult contains the result',
+        'imageResult.resultImage is the combined image (room + furniture)',
+        'Assign it to imageView.image to display',
+      ]} />
+
+      <DocParagraph>
+        <strong>3. Handle Failure Result</strong>
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="FurnitureGeneration.swift"
+        code={`case .failure(let error):
+    print("Generation failed: \\(error)")`}
+      />
+      <DocList items={[
+        'If generation fails, handle the error',
+        'Print or show an error message to the user',
+      ]} />
+
+      <DocHeading level={3}>Step-by-step flow</DocHeading>
+      <DocList items={[
+        'Prepare inputs: Room image (userRoomImage), Room type ("living_room"), Furniture product image URL ("https://example.com/sofa.jpg")',
+        'Call generateFurniture(): SDK downloads the furniture image from the URL, Analyzes the room image, Places the furniture in the room, Generates a combined image',
+        'Receive result: Success: Get the generated image and display it, Failure: Handle the error',
+      ]} />
+
+      <DocHeading level={3}>Complete example with context</DocHeading>
+      <CodeBlock
+        language="swift"
+        filename="FurnitureGeneration.swift"
+        code={`// Step 1: You have a room image from Phase 3 (Room Analysis)
+let userRoomImage: UIImage = ... // From your classified room photos
+
+// Step 2: You have a furniture product URL from Phase 5 (Vendor Integration)
+let sofaUrl = "https://vendor-site.com/products/sofa-123.jpg"
+
+// Step 3: Generate the visualization
+sdk.generateFurniture(
+    thumbnailImg: userRoomImage,      // Your room photo
+    roomType: "living_room",          // Room type (from Phase 3 classification)
+    objectUrl: sofaUrl,               // Furniture product image URL
+    completion: { result in
+        switch result {
+        case .success(let imageResult):
+            if let generatedImage = imageResult.resultImage {
+                // Success! Show the user their room with the sofa placed in it
+                imageView.image = generatedImage
+                print("✅ Furniture visualization generated!")
+            } else {
+                print("⚠️ No image returned")
+            }
             
-        } catch let error as GenerationAPIError {
-            // Map API errors to user-friendly errors
-            return .failure(mapAPIError(error))
-            
-        } catch {
-            return .failure(.unknown(error))
+        case .failure(let error):
+            // Handle errors
+            print("❌ Generation failed: \\(error)")
+            // Show error message to user
+            showError("Could not generate visualization. Please try again.")
         }
     }
-    
-    /// Map API errors to user-friendly errors
-    private func mapAPIError(_ error: GenerationAPIError) -> GenerationError {
-        switch error {
-        case .faceNotDetected:
-            return .faceNotClear
-        case .productImageInvalid:
-            return .invalidProduct
-        case .generationFailed(let reason):
-            return .generationFailed(reason: reason)
-        default:
-            return .unknown(error)
-        }
-    }
-}`} 
-        filename="GenerationErrorHandling.swift"
-        language="swift"
+)`}
       />
 
-      <DocHeading level={3}>Part 2: Error Types and Messages</DocHeading>
-      <CodeBlock 
-        code={`/// Generation error types
-enum GenerationError: Error {
-    case faceNotClear                    // Face image is not clear enough
-    case invalidProduct                   // Product image is invalid
-    case lowQualityResult(confidence: Float)  // Generated image quality is too low
-    case generationFailed(reason: String)     // Generation failed for some reason
-    case unknown(Error)                  // Unknown error
-    
-    /// What the DEVELOPER sees in console/logs
-    var developerMessage: String {
-        switch self {
-        case .faceNotClear:
-            return "❌ DEVELOPER ERROR: Face not detected in image - face image quality too low"
-        case .invalidProduct:
-            return "❌ DEVELOPER ERROR: Product image is invalid or corrupted"
-        case .lowQualityResult(let confidence):
-            return "⚠️ DEVELOPER WARNING: Generated image quality too low (confidence: \\(confidence))"
-        case .generationFailed(let reason):
-            return "❌ DEVELOPER ERROR: Generation failed - \\(reason)"
-        case .unknown(let error):
-            return "❌ DEVELOPER ERROR: Unknown generation error - \\(error)"
-        }
-    }
-    
-    /// What the USER sees in UI
-    var userMessage: String {
-        switch self {
-        case .faceNotClear:
-            return "Could not generate try-on. Please select a clearer photo with a visible face."
-        case .invalidProduct:
-            return "This product cannot be used for try-on generation. Please select a different product."
-        case .lowQualityResult:
-            return "Generated image quality is too low. Try selecting a different photo or product."
-        case .generationFailed(let reason):
-            return "Generation failed. Please try again with a different photo or product."
-        case .unknown:
-            return "An unexpected error occurred. Please try again."
-        }
-    }
-    
-    /// Suggested action for user
-    var suggestedAction: String {
-        switch self {
-        case .faceNotClear:
-            return "Select a different photo with a clearer face"
-        case .invalidProduct:
-            return "Select a different product"
-        case .lowQualityResult:
-            return "Try a different photo or product"
-        case .generationFailed:
-            return "Retry with different images"
-        case .unknown:
-            return "Contact support if problem persists"
-        }
-    }
-}`} 
-        filename="GenerationErrorHandling.swift"
-        language="swift"
-      />
-
-      <DocHeading level={3}>Part 3: Error Handler Class</DocHeading>
-      <CodeBlock 
-        code={`/// Example: Complete error handling in UI
-class GenerationErrorHandler {
-    
-    /// Handle generation error and show appropriate message
-    func handleGenerationError(_ error: GenerationError) {
-        // Log for developer
-        print(error.developerMessage)
-        
-        // Show to user
-        showErrorToUser(
-            message: error.userMessage,
-            action: error.suggestedAction
-        )
-    }
-    
-    /// Show error in UI
-    private func showErrorToUser(message: String, action: String) {
-        // Show alert or error view to user
-        print("USER SEES: \\(message)")
-        print("SUGGESTED ACTION: \\(action)")
-    }
-}`} 
-        filename="GenerationErrorHandling.swift"
-        language="swift"
-      />
-
+      <DocHeading level={3}>What this does</DocHeading>
       <DocList items={[
-        'Always provide actionable error messages to users',
-        'Implement retry logic for transient failures',
-        'Offer alternative photo selection when quality is insufficient',
-        'Log detailed errors for debugging while showing simple messages to users',
+        'Takes a room photo (e.g., living room)',
+        'Takes a furniture product image URL (e.g., sofa)',
+        'Combines them to show the furniture placed in the room',
+        'Returns a new image showing the result',
       ]} />
 
-      <DocHeading level={2} id="furniture-generation">Step 3: Generation of Personalization Results (Furniture)</DocHeading>
-      <DocParagraph>
-        Similar to fashion, but for furniture. After you have:
-      </DocParagraph>
+      <DocHeading level={3}>Use cases</DocHeading>
       <DocList items={[
-        '✅ Best room images (living room, bedroom, dining room) from Room Analysis',
-        '✅ Furniture product images from vendor site (e.g., IKEA)',
+        'Virtual furniture placement: Show how a sofa looks in the user\'s living room',
+        'Product visualization: Help users visualize products in their space',
+        'Shopping experience: Let users see products in their rooms before buying',
       ]} />
-      <DocParagraph>
-        You can <strong>generate room visualizations</strong> showing furniture in the user's rooms.
-      </DocParagraph>
 
-      <DocParagraph>
-        <strong>How it works:</strong>
-      </DocParagraph>
+      <DocHeading level={3}>Summary</DocHeading>
       <DocList items={[
-        '1. Take the best living room image',
-        '2. Take a sofa product image from vendor site',
-        '3. Pass both images + product category to the generation API',
-        '4. API returns a generated image showing the sofa in the living room',
-        '5. Similarly: best bedroom image + bed product = bed in bedroom',
+        'Provide room image, room type, and furniture product URL',
+        'SDK generates a combined image',
+        'Display the result or handle errors',
       ]} />
 
       <DocParagraph>
-        Here's what the code below does, step by step:
+        This is typically used after:
       </DocParagraph>
       <DocList items={[
-        '1. Validate compatibility: Check that furniture category is compatible with room type (e.g., don\'t put bed in kitchen)',
-        '2. Prepare room image: Load best room image, resize to 1024×1024, convert to JPEG data',
-        '3. Prepare furniture image: Resize furniture product image to 1024×1024, convert to JPEG data',
-        '4. Create API request: Combine room image data, furniture image URL, room type, and category into request',
-        '5. Call generation API: Send request to room visualization API endpoint',
-        '6. Get response: Receive generated image URL showing furniture placed in the room',
-        '7. Return result: Return RoomVisualizationResult with URL and furniture placement bounds',
+        'Phase 3: You\'ve classified rooms and have room images',
+        'Phase 5: You\'ve integrated vendor products and have product URLs',
       ]} />
 
-      <DocHeading level={3}>Part 1: Main Generation Function</DocHeading>
-      <CodeBlock 
-        code={`import Foundation
-import UIKit
-
-/// Generate furniture visualization in rooms
-class FurnitureGenerationService {
-    private let apiClient: GenerationAPIClient
-    
-    /// Generate room visualization
-    /// Input: Best room image + Furniture product image + Category
-    /// Output: Generated image showing furniture in the room
-    func generateRoomVisualization(
-        bestRoom: SelectedRoom,        // Best room from room analysis
-        furniture: ProductWithImage,    // Furniture product image from vendor
-        category: String                // "sofa", "bed", "dining_table", etc.
-    ) async throws -> RoomVisualizationResult {
-        
-        // Step 1: Validate room-furniture compatibility
-        guard isCompatible(room: bestRoom.roomType, furniture: furniture) else {
-            throw GenerationError.incompatibleRoomFurniture(
-                "Cannot place \\(category) in \\(bestRoom.roomType)"
-            )
-        }
-        
-        // Step 2: Prepare room image
-        guard let roomImageData = try? await prepareRoomImage(bestRoom) else {
-            throw GenerationError.roomImagePreparationFailed
-        }
-        
-        // Step 3: Prepare furniture image
-        guard let furnitureImageData = try? await prepareFurnitureImage(furniture) else {
-            throw GenerationError.furnitureImagePreparationFailed
-        }
-        
-        // Step 4: Create API request
-        let request = RoomVisualizationRequest(
-            roomImageData: roomImageData,
-            furnitureImageURL: furniture.imageURL,
-            roomType: bestRoom.roomType,
-            category: category
-        )
-        
-        // Step 5: Call generation API
-        let response = try await apiClient.generateRoomVisualization(request)
-        
-        // Step 6: Return the generated image
-        return RoomVisualizationResult(
-            visualizedImageURL: response.resultURL,
-            furnitureBounds: response.placedFurnitureBounds,
-            processingTime: response.processingTime
-        )
-    }`} 
-        filename="FurnitureGenerationService.swift"
-        language="swift"
-      />
-
-      <DocHeading level={3}>Part 2: Compatibility Check and Image Preparation</DocHeading>
-      <CodeBlock 
-        code={`    /// Check if furniture is compatible with room type
-    private func isCompatible(room: String, furniture: ProductWithImage) -> Bool {
-        // Room-furniture compatibility mapping
-        let compatibility: [String: [String]] = [
-            "living_room": ["sofa", "coffee_table", "tv_stand", "armchair"],
-            "bedroom": ["bed", "wardrobe", "nightstand", "dresser"],
-            "kitchen": ["dining_table", "chairs", "cabinet"],
-            "dining_room": ["dining_table", "chairs"],
-            "bathroom": ["vanity", "mirror", "storage"]
-        ]
-        
-        guard let allowedFurniture = compatibility[room] else {
-            return false
-        }
-        
-        // Check if furniture category is allowed in this room
-        return allowedFurniture.contains(furniture.category)
-    }
-    
-    /// Prepare room image for API
-    private func prepareRoomImage(_ room: SelectedRoom) async throws -> Data {
-        guard let image = try? await loadImage(assetId: room.assetId) else {
-            throw GenerationError.roomImageLoadFailed
-        }
-        
-        let resized = image.resized(to: CGSize(width: 1024, height: 1024))
-        guard let data = resized.jpegData(compressionQuality: 0.9) else {
-            throw GenerationError.imageEncodingFailed
-        }
-        
-        return data
-    }
-    
-    /// Prepare furniture image for API
-    private func prepareFurnitureImage(_ furniture: ProductWithImage) async throws -> Data {
-        let resized = furniture.image.resized(to: CGSize(width: 1024, height: 1024))
-        guard let data = resized.jpegData(compressionQuality: 0.9) else {
-            throw GenerationError.imageEncodingFailed
-        }
-        
-        return data
-    }
-}`} 
-        filename="FurnitureGenerationService.swift"
-        language="swift"
-      />
-
-      <DocHeading level={3}>Part 3: Request/Response Structures</DocHeading>
-      <CodeBlock 
-        code={`/// Room visualization request
-struct RoomVisualizationRequest: Codable {
-    let roomImageData: Data      // Best room image
-    let furnitureImageURL: URL   // Furniture product image URL
-    let roomType: String         // "living_room", "bedroom", etc.
-    let category: String         // "sofa", "bed", etc.
-}
-
-/// Room visualization result
-struct RoomVisualizationResult {
-    let visualizedImageURL: URL  // Generated image URL
-    let furnitureBounds: CGRect  // Where furniture was placed in image
-    let processingTime: TimeInterval
-}
-
-struct SelectedRoom {
-    let assetId: String
-    let roomType: String         // "living_room", "bedroom", "kitchen", "dining_room"
-    let confidence: Float
-}`} 
-        filename="FurnitureGenerationService.swift"
-        language="swift"
-      />
-
-      <DocCallout type="warning" title="Room Compatibility">
-        The SDK validates room-furniture compatibility before generation. Attempting to 
-        place a bed in a kitchen will throw an <code>incompatibleRoomFurniture</code> error.
-      </DocCallout>
-
-      <DocTable 
-        headers={['Room Type', 'Compatible Furniture']}
-        rows={[
-          ['Living Room', 'Sofa, Coffee Table, TV Stand, Armchair'],
-          ['Bedroom', 'Bed, Wardrobe, Nightstand, Dresser'],
-          ['Kitchen', 'Dining Table, Chairs, Cabinet'],
-          ['Bathroom', 'Vanity, Mirror, Storage'],
-          ['Office', 'Desk, Office Chair, Bookshelf'],
-        ]}
-      />
+      <DocParagraph>
+        The SDK handles the image processing and placement automatically.
+      </DocParagraph>
     </DocSection>
   );
 };

@@ -1,5 +1,5 @@
 import { CodeBlock } from '@/components/ui/CodeBlock';
-import { DocSection, DocHeading, DocParagraph, DocCallout, DocList } from './DocSection';
+import { DocSection, DocHeading, DocParagraph, DocCallout, DocList, DocTable } from './DocSection';
 import { Camera, Zap, Shield, Cpu } from 'lucide-react';
 
 export function IntroductionSection() {
@@ -58,63 +58,52 @@ export function IntroductionSection() {
         <><strong>Room Visualization</strong> — Place furniture in detected room scenes</>,
       ]} />
 
-      <DocHeading level={2} id="installation">Quick Installation</DocHeading>
+      <DocHeading level={2} id="installation">Installation</DocHeading>
       <DocParagraph>
-        Add HyperPersonalization to your project using Swift Package Manager:
+        HyperPersonalization SDK can be integrated into your project using multiple methods. 
+        Choose the one that best fits your workflow.
+      </DocParagraph>
+
+      <DocHeading level={3}>Binary Distribution (XCFramework)</DocHeading>
+      <DocParagraph>
+        To protect the source code, this SDK is distributed as a binary framework (XCFramework).
+      </DocParagraph>
+
+      <DocParagraph>
+        <strong>Download the Release</strong>
+      </DocParagraph>
+      <DocParagraph>
+        Download the HyperPersonalizationSDK.xcframework.zip from the Latest Release.
+      </DocParagraph>
+
+      <DocHeading level={3}>Swift Package Manager (Binary Target)</DocHeading>
+      <DocParagraph>
+        You can include this SDK as a binary target in your own Package.swift.
       </DocParagraph>
 
       <CodeBlock
         language="swift"
         filename="Package.swift"
-        code={`dependencies: [
-    .package(
-        url: "https://github.com/hyperpersonalization/sdk-ios.git",
-        from: "2.1.0"
+        code={`// Package.swift
+targets: [
+    .binaryTarget(
+        name: "HyperPersonalizationSDK",
+        url: "https://github.com/YOUR_USERNAME/YOUR_REPO/releases/download/v1.0.0/HyperPersonalizationSDK.xcframework.zip",
+        checksum: "16c845f84c15176468b5389d69ba57dee05208d9fa82da439c073d057a4a0a03"
     )
 ]`}
       />
 
+      <DocHeading level={3}>Manual Integration</DocHeading>
+      <DocList items={[
+        'Unzip HyperPersonalizationSDK.xcframework.zip',
+        'Drag and drop HyperPersonalizationSDK.xcframework into your Xcode project',
+        'Ensure "Embed & Sign" is selected in the "Frameworks, Libraries, and Embedded Content" section of your target settings',
+      ]} />
+
       <DocCallout type="info" title="Requirements">
         iOS 15.0+ • Swift 5.7+ • Xcode 14.0+
       </DocCallout>
-
-      <DocHeading level={2} id="quick-start">Basic Usage</DocHeading>
-      <DocParagraph>
-        Initialize the SDK and start analyzing the user's photo library:
-      </DocParagraph>
-
-      <CodeBlock
-        language="swift"
-        filename="ContentView.swift"
-        code={`import HyperPersonalization
-
-class PhotoAnalyzer {
-    let sdk = HyperPersonalizationSDK(
-        apiKey: "your-api-key",
-        config: .default
-    )
-    
-    func startAnalysis() async throws {
-        // Request gallery permission
-        let granted = try await sdk.requestGalleryAccess()
-        guard granted else { return }
-        
-        // Scan and analyze photos
-        let results = try await sdk.analyzeGallery(
-            options: AnalysisOptions(
-                includeRooms: true,
-                includeFaces: true,
-                maxPhotos: 500
-            )
-        )
-        
-        // Access personalization assets
-        let bestAssets = results.bestAssets
-        print("Best male face: \\(bestAssets.male?.imageURL)")
-        print("Best living room: \\(bestAssets.livingRoom?.imageURL)")
-    }
-}`}
-      />
 
       <DocHeading level={2}>Architecture Overview</DocHeading>
       <DocParagraph>

@@ -18,7 +18,16 @@ const phases: NavItem[] = [
     children: [
       { id: 'introduction', label: 'Introduction' },
       { id: 'installation', label: 'Installation' },
-      { id: 'quick-start', label: 'Quick Start' },
+    ],
+  },
+  {
+    id: 'usage',
+    label: 'Usage',
+    icon: <Zap className="w-4 h-4" />,
+    children: [
+      { id: 'initialization', label: 'Initialization' },
+      { id: 'auto-service', label: 'Auto Service' },
+      { id: 'manual-service', label: 'Manual Service' },
     ],
   },
   {
@@ -27,20 +36,14 @@ const phases: NavItem[] = [
     icon: <Shield className="w-4 h-4" />,
     children: [
       { id: 'gallery-access', label: 'Gallery Access Strategy' },
-      { id: 'permission-handling', label: 'Permission Handling' },
-      { id: 'denial-flow', label: 'Denial Flow' },
     ],
   },
   {
     id: 'phase-2',
-    label: 'Phase 2: Model Architecture',
+    label: 'Phase 2: CoreML Implementation',
     icon: <Brain className="w-4 h-4" />,
     children: [
-      { id: 'model-inventory', label: 'Model Inventory' },
-      { id: 'coreml-implementation', label: 'CoreML Implementation' },
-      { id: 'image-pipeline', label: 'Image Input Pipeline' },
-      { id: 'response-structure', label: 'Response Structure' },
-      { id: 'confidence-scores', label: 'Confidence Scores' },
+      { id: 'model-overview', label: 'CoreML Implementation' },
     ],
   },
   {
@@ -135,15 +138,11 @@ interface SidebarProps {
 const sectionToRoute: Record<string, string> = {
   'introduction': '/introduction',
   'installation': '/introduction',
-  'quick-start': '/introduction',
+  'initialization': '/usage',
+  'auto-service': '/usage',
+  'manual-service': '/usage',
   'gallery-access': '/permissions',
-  'permission-handling': '/permissions',
-  'denial-flow': '/permissions',
-  'model-inventory': '/model-architecture',
-  'coreml-implementation': '/model-architecture',
-  'image-pipeline': '/model-architecture',
-  'response-structure': '/model-architecture',
-  'confidence-scores': '/model-architecture',
+  'model-overview': '/model-architecture',
   'room-classification': '/room-analysis',
   'asset-storage': '/room-analysis',
   'low-confidence': '/room-analysis',

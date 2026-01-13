@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import IntroductionPage from "./pages/IntroductionPage";
+import UsagePage from "./pages/UsagePage";
 import PermissionsPage from "./pages/PermissionsPage";
 import ModelArchitecturePage from "./pages/ModelArchitecturePage";
 import RoomAnalysisPage from "./pages/RoomAnalysisPage";
@@ -27,6 +28,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/introduction" replace />} />
           <Route path="/introduction" element={<IntroductionPage />} />
+          <Route path="/usage" element={<UsagePage />} />
           <Route path="/permissions" element={<PermissionsPage />} />
           <Route path="/model-architecture" element={<ModelArchitecturePage />} />
           <Route path="/room-analysis" element={<RoomAnalysisPage />} />

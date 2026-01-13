@@ -88,6 +88,7 @@ export function CodeBlock({
 
 // Simple syntax highlighting
 function highlightSyntax(code: string, language: string): string {
+  // Escape HTML first to prevent XSS
   let highlighted = escapeHtml(code);
   
   // Keywords
@@ -96,24 +97,34 @@ function highlightSyntax(code: string, language: string): string {
     : ['const', 'let', 'var', 'function', 'async', 'await', 'return', 'if', 'else', 'for', 'while', 'class', 'interface', 'type', 'export', 'import', 'from', 'default', 'try', 'catch', 'throw', 'new', 'this', 'true', 'false', 'null', 'undefined'];
   
   keywords.forEach(keyword => {
-    const regex = new RegExp(`\\b(${keyword})\\b`, 'g');
-    highlighted = highlighted.replace(regex, '<span class="token keyword">$1</span>');
+    const regex = new RegExp(`\\b${escapeRegex(keyword)}\\b`, 'g');
+    highlighted = highlighted.replace(regex, `<span class="token keyword">${keyword}</span>`);
   });
 
-  // Strings
-  highlighted = highlighted.replace(/"([^"\\]|\\.)*"/g, '<span class="token string">"$&"</span>'.replace(/""/g, ''));
-  highlighted = highlighted.replace(/"([^"\\]|\\.)*"/g, match => `<span class="token string">${match}</span>`);
+  // Strings (double quotes)
+  highlighted = highlighted.replace(/"([^"\\]|\\.)*"/g, (match) => {
+    return `<span class="token string">${match}</span>`;
+  });
   
+  // Strings (single quotes)
+  highlighted = highlighted.replace(/'([^'\\]|\\.)*'/g, (match) => {
+    return `<span class="token string">${match}</span>`;
+  });
+
   // Comments
   highlighted = highlighted.replace(/(\/\/.*$)/gm, '<span class="token comment">$1</span>');
-  
+
   // Numbers
   highlighted = highlighted.replace(/\b(\d+\.?\d*)\b/g, '<span class="token number">$1</span>');
-  
+
   // Function calls
   highlighted = highlighted.replace(/(\w+)(?=\()/g, '<span class="token function">$1</span>');
 
   return highlighted;
+}
+
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function escapeHtml(text: string): string {
