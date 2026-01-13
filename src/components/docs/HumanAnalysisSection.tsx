@@ -431,6 +431,19 @@ enum ClusteringError: Error {
         The fashion analysis pipeline processes images through multiple stages to extract 
         demographic information for personalization.
       </DocParagraph>
+
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Initialize detectors: Create face detector, gender classifier, and age classifier',
+        '2. Detect faces: Use face detector to find all faces in the image',
+        '3. Get primary face: Use the first (most prominent) face found',
+        '4. Crop face region: Extract the face area from the image with padding',
+        '5. Classify gender: Pass cropped face to gender classifier to get male/female',
+        '6. Classify age: Pass same cropped face to age classifier to get age range',
+        '7. Return profile: Combine all results into a FashionProfile with gender, age, and confidence scores',
+      ]} />
       
       <CodeBlock 
         code={fashionAnalysisCode} 
@@ -448,6 +461,21 @@ enum ClusteringError: Error {
         Before classifying gender/age, you first need to <strong>detect faces</strong> in the image. 
         HyperPersonalization uses Apple's Vision framework with <code>VNDetectFaceRectanglesRequest</code> to find faces.
       </DocParagraph>
+
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Convert UIImage to CGImage: Vision framework needs CGImage, not UIImage',
+        '2. Create face detection request: Use VNDetectFaceRectanglesRequest to detect faces',
+        '3. Set revision: Use Revision 3 (latest) for best accuracy',
+        '4. Create image handler: Use VNImageRequestHandler to process the image',
+        '5. Preserve orientation: Pass image orientation so faces are detected correctly even if photo is rotated',
+        '6. Run detection: Call handler.perform([request]) to detect faces',
+        '7. Get results: Extract VNFaceObservation objects containing face locations',
+        '8. Convert to custom format: Convert Vision results to your custom FaceDetection struct',
+        '9. Return detections: Return array of detected faces with bounding boxes and confidence scores',
+      ]} />
 
       <CodeBlock 
         code={`import Vision
@@ -548,6 +576,20 @@ enum FaceDetectionError: Error {
         This cropped face is then passed to the gender and age classification models.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Convert to CGImage: Get CGImage from UIImage for cropping',
+        '2. Convert normalized coordinates: Vision returns coordinates in 0.0-1.0 range, convert to pixel coordinates',
+        '3. Add padding: Add 30% padding around face to include hair, ears, and neck (important for classification)',
+        '4. Make square: Models need square images, so make the crop area square',
+        '5. Crop the image: Use cgImage.cropping(to:) to extract the face region',
+        '6. Resize to model size: Resize cropped face to 224×224 pixels (required by gender/age models)',
+        '7. Return cropped face: Return the final cropped and resized face image ready for classification',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Main Cropping Function</DocHeading>
       <CodeBlock 
         code={`import UIKit
 import Vision
@@ -571,7 +613,6 @@ class FaceCropper {
         let imageSize = CGSize(width: cgImage.width, height: cgImage.height)
         
         // Step 1: Convert normalized bounding box (0.0-1.0) to pixel coordinates
-        // Vision framework returns coordinates in normalized format (0.0 to 1.0)
         let faceRect = VNImageRectForNormalizedRect(
             faceDetection.boundingBox,
             Int(imageSize.width),
@@ -579,7 +620,6 @@ class FaceCropper {
         )
         
         // Step 2: Add padding around the face (30% on each side)
-        // This includes hair, ears, and neck - important for accurate classification
         let paddingX = faceRect.width * padding
         let paddingY = faceRect.height * padding
         
@@ -607,9 +647,14 @@ class FaceCropper {
         )
         
         return resizedImage
-    }
-    
-    /// Make a rectangle square (models need square inputs)
+    }`} 
+        filename="FaceCropping.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Helper Functions</DocHeading>
+      <CodeBlock 
+        code={`    /// Make a rectangle square (models need square inputs)
     private func makeSquare(rect: CGRect, within bounds: CGSize) -> CGRect {
         let size = max(rect.width, rect.height)
         let centerX = rect.midX
@@ -634,11 +679,7 @@ class FaceCropper {
 enum CroppingError: Error {
     case invalidImage
     case croppingFailed
-}
-
-/// Example usage:
-/// let croppedFace = try FaceCropper().cropFace(from: image, faceDetection: faces[0])
-/// // Now croppedFace is 224×224 pixels, ready for gender/age classification`} 
+}`} 
         filename="FaceCropping.swift"
         language="swift"
       />
@@ -658,6 +699,19 @@ enum CroppingError: Error {
         After cropping the face, you pass the cropped face image to <strong>both</strong> the gender classifier and age classifier models.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Load models: Initialize gender and age classifier models when class is created',
+        '2. Classify gender: Pass cropped face (224×224) to gender model, get "male" or "female" + confidence',
+        '3. Classify age: Pass SAME cropped face to age model, get age range ("child", "teen", "adult", "senior") + confidence',
+        '4. Complete flow: Detect face → crop face → classify gender → classify age',
+        '5. Check confidence: Reject results if confidence is too low (gender < 0.75, age < 0.70)',
+        '6. Return profile: Combine all results into a FashionProfile with gender, age, and confidence scores',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Initialize and Classify Gender</DocHeading>
       <CodeBlock 
         code={`import CoreML
 import Vision
@@ -699,9 +753,14 @@ class GenderAgeClassifier {
             label: topResult.identifier,      // "male" or "female"
             confidence: topResult.confidence   // 0.0 to 1.0
         )
-    }
-    
-    /// Step 2: Classify age from the SAME cropped face image
+    }`} 
+        filename="GenderAgeClassification.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Classify Age</DocHeading>
+      <CodeBlock 
+        code={`    /// Step 2: Classify age from the SAME cropped face image
     /// Input: Same cropped face image (224×224 pixels)
     /// Output: Age range (child/teen/adult/senior) + confidence
     func classifyAge(croppedFace: UIImage) async throws -> AgeResult {
@@ -727,9 +786,14 @@ class GenderAgeClassifier {
             ageRange: topResult.identifier,    // "child", "teen", "adult", or "senior"
             confidence: topResult.confidence   // 0.0 to 1.0
         )
-    }
-    
-    /// Complete flow: Detect face, crop, then classify gender and age
+    }`} 
+        filename="GenderAgeClassification.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 3: Complete Processing Flow</DocHeading>
+      <CodeBlock 
+        code={`    /// Complete flow: Detect face, crop, then classify gender and age
     func processImage(_ image: UIImage) async throws -> FashionProfile {
         // Step 1: Detect faces
         let faces = try await FaceDetector().detectFaces(in: image)
@@ -779,13 +843,7 @@ enum ClassificationError: Error {
     case noResults
     case noFacesFound
     case lowConfidence(String)
-}
-
-/// Example usage:
-/// let classifier = try GenderAgeClassifier()
-/// let profile = try await classifier.processImage(image)
-/// print("Gender: \\(profile.gender) (\\(profile.genderConfidence))")
-/// print("Age: \\(profile.ageRange) (\\(profile.ageConfidence))")`} 
+}`} 
         filename="GenderAgeClassification.swift"
         language="swift"
       />
@@ -821,6 +879,19 @@ enum ClassificationError: Error {
         The clustering API expects a JSON request with face embeddings:
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Define request structure: Create structs for API request (embeddings, algorithm, parameters)',
+        '2. Extract embeddings: For each classified face, extract 512 numbers (embedding vector) using FaceEmbedding model',
+        '3. Create embedding data: Combine embedding vector with metadata (assetId, gender, age, confidence)',
+        '4. Set clustering parameters: Configure algorithm (DBSCAN), min samples (3), and epsilon (0.5)',
+        '5. Build request: Combine all embeddings into a single API request',
+        '6. Send to API: The request is sent as JSON to the clustering API endpoint',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Request Structure</DocHeading>
       <CodeBlock 
         code={`import Foundation
 
@@ -842,9 +913,14 @@ struct FaceEmbeddingData: Codable {
 struct ClusteringParameters: Codable {
     let minSamples: Int       // Minimum 3 faces to form a cluster
     let epsilon: Double        // Distance threshold (0.5)
-}
+}`} 
+        filename="ClusteringAPIInput.swift"
+        language="swift"
+      />
 
-/// Example: How to prepare data for clustering API
+      <DocHeading level={3}>Part 2: Prepare Request</DocHeading>
+      <CodeBlock 
+        code={`/// Example: How to prepare data for clustering API
 class ClusteringAPIPreparer {
     
     /// Convert classified images to API request format
@@ -882,29 +958,9 @@ class ClusteringAPIPreparer {
     private func extractFaceEmbedding(from image: UIImage) throws -> [Float] {
         // Use FaceEmbedding.mlmodel to extract embedding
         // This returns 512 numbers representing the face
-        // (Implementation details in FaceEmbedding model section)
         return [] // Placeholder - actual implementation uses CoreML model
     }
-}
-
-/// Example JSON that gets sent to API:
-/// {
-///   "embeddings": [
-///     {
-///       "assetId": "photo123",
-///       "embedding": [0.1, 0.2, 0.3, ...],  // 512 numbers
-///       "gender": "male",
-///       "ageRange": "adult",
-///       "confidence": 0.95
-///     },
-///     ...
-///   ],
-///   "algorithm": "dbscan",
-///   "parameters": {
-///     "minSamples": 3,
-///     "epsilon": 0.5
-///   }
-/// }`} 
+}`} 
         filename="ClusteringAPIInput.swift"
         language="swift"
       />
@@ -913,6 +969,17 @@ class ClusteringAPIPreparer {
       <DocParagraph>
         The clustering API returns grouped faces in clusters:
       </DocParagraph>
+
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Define response structure: Create structs for API response (clusters, noise, processing time)',
+        '2. Cluster structure: Each cluster contains clusterId, memberCount (how many faces), members list, and centroid',
+        '3. Member structure: Each member has assetId, distanceFromCentroid (how typical this face is), and clarityScore',
+        '4. Noise: Photos that don\'t match any cluster (outliers)',
+        '5. Process response: Parse JSON response and extract cluster information',
+      ]} />
 
       <CodeBlock 
         code={`/// Output format from clustering API
@@ -969,6 +1036,20 @@ struct ClusterMember: Codable {
         You need to handle errors when the API fails. Here's what to do:
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Try API call: Attempt to call the clustering API',
+        '2. Handle network errors: Catch timeout, no internet, and other network errors',
+        '3. Handle HTTP errors: Handle 400 (bad request), 401 (unauthorized), 429 (rate limited), 500 (server error)',
+        '4. Handle decoding errors: Handle cases where API returns invalid JSON',
+        '5. Log for developer: Print detailed error messages to console for debugging',
+        '6. Show to user: Display friendly error messages in UI explaining what went wrong',
+        '7. Provide fallback: Suggest retry or alternative actions',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Error Handling</DocHeading>
       <CodeBlock 
         code={`import Foundation
 
@@ -1015,9 +1096,14 @@ class ClusteringAPIErrorHandler {
             // Unknown error
             throw ClusteringError.unknown(error)
         }
-    }
-    
-    /// What the DEVELOPER sees in console/logs
+    }`} 
+        filename="ClusteringAPIErrorHandling.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Error Messages</DocHeading>
+      <CodeBlock 
+        code={`    /// What the DEVELOPER sees in console/logs
     func logError(_ error: ClusteringError) {
         switch error {
         case .timeout(let message):
@@ -1061,20 +1147,7 @@ enum ClusteringError: Error {
     case serverError(String)
     case httpError(Int)
     case unknown(Error)
-}
-
-/// Example usage with error handling:
-/// do {
-///     let response = try await errorHandler.callClusteringAPI(request: request)
-///     // Success - process clusters
-/// } catch let error as ClusteringError {
-///     // Log for developer
-///     errorHandler.logError(error)
-///     
-///     // Show to user
-///     let userMessage = errorHandler.getUserMessage(for: error)
-///     showErrorToUser(userMessage)
-/// }`} 
+}`} 
         filename="ClusteringAPIErrorHandling.swift"
         language="swift"
       />
@@ -1099,6 +1172,20 @@ enum ClusteringError: Error {
         '3. That face becomes the "best face" for that category',
       ]} />
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Sort clusters by size: Sort clusters by memberCount (largest first) - largest cluster = primary user',
+        '2. Loop through clusters: Start with largest cluster and work down',
+        '3. Find best member: In each cluster, find member with highest clarityScore (best image quality)',
+        '4. Get profile: Look up the FashionProfile for that member using assetId',
+        '5. Assign to category: Based on gender and age, assign to bestMale, bestFemale, or bestKid',
+        '6. Stop when found: Once all three categories are filled, stop searching',
+        '7. Return result: Return BestFacesResult with best face for each category',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Main Selection Logic</DocHeading>
       <CodeBlock 
         code={`import Foundation
 
@@ -1119,7 +1206,6 @@ class BestFaceSelector {
         )
         
         // Step 1: Sort clusters by member count (largest first)
-        // The cluster with most faces = primary user
         let sortedClusters = response.clusters.sorted { $0.memberCount > $1.memberCount }
         
         // Step 2: For each cluster (starting with largest)
@@ -1138,21 +1224,18 @@ class BestFaceSelector {
             let selectedFace = SelectedFace(
                 assetId: bestMember.assetId,
                 profile: profile,
-                clusterSize: cluster.memberCount,      // How many times this person appears
-                confidence: bestMember.clarityScore    // Quality of this face image
+                clusterSize: cluster.memberCount,
+                confidence: bestMember.clarityScore
             )
             
             // Assign to male, female, or kids based on classification
             switch (profile.gender, profile.ageRange) {
             case ("male", "adult") where bestMale == nil:
                 bestMale = selectedFace
-                
             case ("female", "adult") where bestFemale == nil:
                 bestFemale = selectedFace
-                
             case (_, "child") where bestKid == nil:
                 bestKid = selectedFace
-                
             default:
                 break
             }
@@ -1168,13 +1251,17 @@ class BestFaceSelector {
             bestFemale: bestFemale,
             bestKid: bestKid
         )
-    }
-    
-    /// Select the best member from a cluster
+    }`} 
+        filename="BestFaceSelection.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Select Best Member from Cluster</DocHeading>
+      <CodeBlock 
+        code={`    /// Select the best member from a cluster
     /// Strategy: Highest confidence score (clarity score)
     private func selectBestMember(from cluster: FaceCluster) -> ClusterMember? {
         // Sort by clarity score (highest first)
-        // Clarity score = image quality (sharpness, lighting, etc.)
         return cluster.members
             .sorted { $0.clarityScore > $1.clarityScore }
             .first  // Return the one with highest clarity
@@ -1193,17 +1280,7 @@ struct SelectedFace {
     let profile: FashionProfile   // Full profile (gender, age, etc.)
     let clusterSize: Int          // How many times this person appears
     let confidence: Float         // Image quality score
-}
-
-/// Example usage:
-/// let selector = BestFaceSelector()
-/// let result = selector.selectBestFaces(from: apiResponse, profiles: allProfiles)
-/// 
-/// if let bestMale = result.bestMale {
-///     print("Best male face: \\(bestMale.assetId)")
-///     print("Appears \\(bestMale.clusterSize) times in photos")
-///     print("Image quality: \\(bestMale.confidence)")
-/// }`} 
+}`} 
         filename="BestFaceSelection.swift"
         language="swift"
       />

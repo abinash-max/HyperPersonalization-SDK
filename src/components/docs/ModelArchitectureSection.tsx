@@ -32,6 +32,17 @@ export function ModelArchitectureSection() {
 
         <DocHeading level={2}>Model Specifications</DocHeading>
         
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Define model enum: Create an enum listing all available CoreML models (gender, age, room, etc.)',
+          '2. Specify input sizes: Each model needs images in a specific size (e.g., 224×224 for gender, 299×299 for room)',
+          '3. Set color space: All models use RGB color space for consistent processing',
+          '4. Define pixel format: Models expect images in BGRA format (Blue-Green-Red-Alpha)',
+          '5. Benchmark times: Shows expected processing time for each model on A14 Bionic chip',
+        ]} />
+
         <CodeBlock
           language="swift"
           filename="ModelSpecs.swift"
@@ -98,6 +109,17 @@ enum HyperPersonalizationModels {
           First, you need to load the model. The model files are already in the HyperPersonalization SDK.
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Create model configuration: Use MLModelConfiguration() to set up how the model runs',
+          '2. Set compute units: Use .all to use Neural Engine if available, falling back to GPU/CPU',
+          '3. Load the model: Initialize the model class (e.g., GenderClassifier) which loads the .mlmodel file',
+          '4. Wrap in Vision framework: Convert to VNCoreMLModel for easier use with Vision framework',
+          '5. Return wrapped model: Return the model ready to use for image classification',
+        ]} />
+
         <CodeBlock
           language="swift"
           filename="LoadModel.swift"
@@ -147,6 +169,17 @@ class ModelLoader {
           Models need images in a specific format. You need to resize the image to the exact size the model expects.
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Resize for specific model: Each model needs a different size (224×224 for gender/age, 299×299 for room)',
+          '2. Create graphics context: Use UIGraphicsBeginImageContextWithOptions() to create a drawing context',
+          '3. Draw image at new size: Draw the original image scaled to the target size',
+          '4. Get resized image: Extract the resized image from the graphics context',
+          '5. Convert to CGImage: Convert UIImage to CGImage which Vision framework needs',
+        ]} />
+
         <CodeBlock
           language="swift"
           filename="PrepareImage.swift"
@@ -191,6 +224,21 @@ class ImagePreparer {
           Now you can pass the prepared image to the model and get results. Here's how to use each model:
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Load models on init: When the class is created, load all models (gender, age, room)',
+          '2. Prepare image: Resize the input image to the exact size the model needs (224×224 or 299×299)',
+          '3. Create Vision request: Use VNCoreMLRequest to create a request with your loaded model',
+          '4. Set crop option: Choose how to handle image (center crop, scale fill, etc.)',
+          '5. Create handler: Use VNImageRequestHandler to process the image',
+          '6. Run the model: Call handler.perform([request]) to run inference',
+          '7. Get results: Extract VNClassificationObservation which contains label and confidence',
+          '8. Return result: Create a result struct with the classification (e.g., "male", "living_room") and confidence score',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Initialize Models</DocHeading>
         <CodeBlock
           language="swift"
           filename="UseModels.swift"
@@ -207,9 +255,14 @@ class ModelUser {
         self.genderModel = try ModelLoader().loadGenderModel()
         self.roomModel = try ModelLoader().loadRoomModel()
         self.ageModel = try ModelLoader().loadAgeModel()
-    }
-    
-    /// Use Gender Classifier Model
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Classify Gender</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="UseModels.swift"
+          code={`    /// Use Gender Classifier Model
     /// Input: A face image (224×224 pixels)
     /// Output: Gender (male/female) + confidence score
     func classifyGender(faceImage: UIImage) async throws -> GenderResult {
@@ -221,7 +274,7 @@ class ModelUser {
         
         // Step 2: Create a Vision request
         let request = VNCoreMLRequest(model: genderModel)
-        request.imageCropAndScaleOption = .centerCrop  // Crop center of image
+        request.imageCropAndScaleOption = .centerCrop
         
         // Step 3: Create a handler and run the model
         let handler = VNImageRequestHandler(cgImage: cgImage)
@@ -236,11 +289,16 @@ class ModelUser {
         // Step 5: Return the result
         return GenderResult(
             label: topResult.identifier,        // "male" or "female"
-            confidence: topResult.confidence     // 0.0 to 1.0 (e.g., 0.95 = 95% confident)
+            confidence: topResult.confidence     // 0.0 to 1.0
         )
-    }
-    
-    /// Use Room Classifier Model
+    }`}
+        />
+
+        <DocHeading level={3}>Part 3: Classify Room</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="UseModels.swift"
+          code={`    /// Use Room Classifier Model
     /// Input: A room image (299×299 pixels)
     /// Output: Room type + confidence score
     func classifyRoom(roomImage: UIImage) async throws -> RoomResult {
@@ -252,7 +310,7 @@ class ModelUser {
         
         // Step 2: Create request
         let request = VNCoreMLRequest(model: roomModel)
-        request.imageCropAndScaleOption = .scaleFill  // Fill entire image
+        request.imageCropAndScaleOption = .scaleFill
         
         // Step 3: Run the model
         let handler = VNImageRequestHandler(cgImage: cgImage)
@@ -272,9 +330,14 @@ class ModelUser {
         }
         
         return RoomResult(predictions: Array(predictions))
-    }
-    
-    /// Use Age Classifier Model
+    }`}
+        />
+
+        <DocHeading level={3}>Part 4: Classify Age</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="UseModels.swift"
+          code={`    /// Use Age Classifier Model
     /// Input: A face image (224×224 pixels)
     /// Output: Age range + confidence score
     func classifyAge(faceImage: UIImage) async throws -> AgeResult {
@@ -329,6 +392,19 @@ enum ModelError: Error {
         </DocParagraph>
 
         <DocHeading level={2}>PHAsset to Model Input</DocHeading>
+
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Fetch image from Photos: Use PHImageManager to load the image from PHAsset',
+          '2. Normalize orientation: Fix image rotation based on EXIF data (some photos are rotated)',
+          '3. Resize image: Resize to the exact size the model needs (e.g., 299×299 for room classifier)',
+          '4. Create pixel buffer: Convert UIImage to CVPixelBuffer which CoreML models require',
+          '5. Set color space: Ensure proper RGB color space conversion',
+          '6. Lock buffer: Lock the pixel buffer for writing, draw the image, then unlock',
+          '7. Return buffer: Return the CVPixelBuffer ready to pass to the model',
+        ]} />
 
         <CodeBlock
           language="swift"
@@ -470,6 +546,18 @@ class ImagePipeline {
           When you run the Gender Classifier, you get back:
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Define result structures: Create structs to hold model results (GenderResult, AgeResult, RoomResult)',
+          '2. Gender result: Contains label ("male" or "female") and confidence (0.0-1.0)',
+          '3. Age result: Contains ageRange ("child", "teen", "adult", "senior") and confidence',
+          '4. Room result: Contains array of top 3 predictions, each with label and confidence',
+          '5. Object detection: Returns list of detected objects with bounding boxes (where objects are in image)',
+          '6. Face embedding: Returns 512 numbers (vector) representing the face, plus quality score',
+        ]} />
+
         <CodeBlock
           language="swift"
           filename="ModelResponses.swift"
@@ -607,6 +695,18 @@ struct FaceEmbeddingResult: Codable {
         <DocParagraph>
           Here's how to check if a result is good enough to use:
         </DocParagraph>
+
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Check gender confidence: Reject if confidence is below 0.75 (75%), accept if 0.75 or higher',
+          '2. Check room confidence: Reject if top prediction confidence is below 0.60 (60%)',
+          '3. Check age confidence: Reject if confidence is below 0.70 (70%)',
+          '4. Process all results: Check gender, age, and room results before using the image',
+          '5. Log decisions: Print whether each result was accepted or rejected with the confidence score',
+          '6. Continue if all pass: Only proceed with personalization if all confidence scores meet thresholds',
+        ]} />
 
         <CodeBlock
           language="swift"

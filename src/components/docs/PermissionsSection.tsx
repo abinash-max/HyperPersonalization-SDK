@@ -20,6 +20,17 @@ export function PermissionsSection() {
           If granted, you can scan and analyze all their photos for personalization.
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Check current permission status: Before requesting, check if permission was already granted or denied',
+          '2. Request permission: Call requestAuthorization() which shows a system dialog to the user',
+          '3. Handle the result: Based on what the user chose (granted/denied/limited), take appropriate action',
+          '4. Fetch photos: If granted, use PHAsset.fetchAssets() to get all photos from the gallery',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Check Permission Status</DocHeading>
         <CodeBlock
           language="swift"
           filename="PermissionManager.swift"
@@ -31,34 +42,42 @@ class PermissionManager {
     func checkPermissionStatus() -> PHAuthorizationStatus {
         return PHPhotoLibrary.authorizationStatus(for: .readWrite)
     }
-    
-    /// Step 2: Request full gallery access
+}`}
+        />
+
+        <DocHeading level={3}>Part 2: Request Permission</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="PermissionManager.swift"
+          code={`    /// Step 2: Request full gallery access
     /// This will show a system dialog asking the user for permission
     func requestFullGalleryAccess() async -> PHAuthorizationStatus {
         // This is an async function that waits for user's response
         let status = await PHPhotoLibrary.requestAuthorization(for: .readWrite)
         return status
-    }
-    
-    /// Step 3: Handle the permission result
+    }`}
+        />
+
+        <DocHeading level={3}>Part 3: Handle Permission Result</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="PermissionManager.swift"
+          code={`    /// Step 3: Handle the permission result
     func handlePermissionResult(_ status: PHAuthorizationStatus) {
         switch status {
         case .authorized:
             // ✅ User granted full access - you can now access all photos
             print("Full gallery access granted!")
-            // Now you can fetch all photos from the gallery
             fetchAllPhotos()
             
         case .limited:
             // ⚠️ User selected only specific photos
             print("Limited access - user selected specific photos")
-            // You'll need to use PHPicker to let user select photos
             showPhotoPicker()
             
         case .denied:
             // ❌ User denied access
             print("Access denied by user")
-            // Show error message and prompt user to upload photos manually
             showPermissionDeniedError()
             
         case .restricted:
@@ -69,7 +88,6 @@ class PermissionManager {
         case .notDetermined:
             // ⏳ Permission not yet requested
             print("Permission not yet requested")
-            // Request permission now
             Task {
                 let newStatus = await requestFullGalleryAccess()
                 handlePermissionResult(newStatus)
@@ -78,9 +96,14 @@ class PermissionManager {
         @unknown default:
             print("Unknown permission status")
         }
-    }
-    
-    /// Fetch all photos when full access is granted
+    }`}
+        />
+
+        <DocHeading level={3}>Part 4: Fetch All Photos</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="PermissionManager.swift"
+          code={`    /// Fetch all photos when full access is granted
     private func fetchAllPhotos() {
         let fetchOptions = PHFetchOptions()
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
@@ -100,6 +123,19 @@ class PermissionManager {
           This is more privacy-friendly but limits the number of photos you can analyze.
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Configure the picker: Set how many photos the user can select (e.g., 50 max) and filter to only show images',
+          '2. Show the picker: Present PHPickerViewController which shows the user\'s photo library',
+          '3. User selects photos: User browses and selects photos they want to share',
+          '4. Get selected photos: When user finishes, didFinishPicking is called with the selected photos',
+          '5. Convert to images: Load each selected photo from PHPickerResult and convert to UIImage',
+          '6. Process images: Now you have the selected images and can analyze them with HyperPersonalization',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Configure and Show Picker</DocHeading>
         <CodeBlock
           language="swift"
           filename="LimitedAccessPicker.swift"
@@ -123,9 +159,14 @@ class LimitedAccessPicker: NSObject, PHPickerViewControllerDelegate {
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = self
         viewController.present(picker, animated: true)
-    }
-    
-    /// This function is called when user finishes selecting photos
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Handle User Selection</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="LimitedAccessPicker.swift"
+          code={`    /// This function is called when user finishes selecting photos
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         // Dismiss the picker
         picker.dismiss(animated: true)
@@ -143,9 +184,14 @@ class LimitedAccessPicker: NSObject, PHPickerViewControllerDelegate {
                 print("Error loading images: \\(error)")
             }
         }
-    }
-    
-    /// Convert PHPickerResult to UIImage array
+    }`}
+        />
+
+        <DocHeading level={3}>Part 3: Convert Results to Images</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="LimitedAccessPicker.swift"
+          code={`    /// Convert PHPickerResult to UIImage array
     private func loadSelectedImages(from results: [PHPickerResult]) async throws -> [UIImage] {
         var images: [UIImage] = []
         
@@ -174,6 +220,19 @@ class LimitedAccessPicker: NSObject, PHPickerViewControllerDelegate {
           This is useful when you want to focus on specific types of photos.
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Find the folder: Use PHAssetCollection.fetchAssetCollections() to find specific albums (Favorites, Screenshots, etc.)',
+          '2. Get folder type: Use subtype parameter to specify which folder (e.g., .smartAlbumFavorites for Favorites)',
+          '3. Fetch photos from folder: Use PHAsset.fetchAssets(in:collection) to get all photos in that folder',
+          '4. Filter images: Loop through assets and only keep those with mediaType == .image',
+          '5. For third-party folders (WhatsApp): Search through all regular albums and find by name (e.g., "WhatsApp")',
+          '6. Return photos: Return array of PHAsset objects that you can then process',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Get Photos from Favorites Folder</DocHeading>
         <CodeBlock
           language="swift"
           filename="SpecificFolderAccess.swift"
@@ -210,9 +269,14 @@ class SpecificFolderAccess {
         
         print("Found \\(photos.count) favorite photos")
         return photos
-    }
-    
-    /// Get photos from Screenshots folder
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Get Photos from Screenshots Folder</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="SpecificFolderAccess.swift"
+          code={`    /// Get photos from Screenshots folder
     func getScreenshotPhotos() -> [PHAsset] {
         let screenshotsCollection = PHAssetCollection.fetchAssetCollections(
             with: .smartAlbum,
@@ -235,34 +299,14 @@ class SpecificFolderAccess {
         
         print("Found \\(photos.count) screenshots")
         return photos
-    }
-    
-    /// Get photos from Selfies folder
-    func getSelfiePhotos() -> [PHAsset] {
-        let selfiesCollection = PHAssetCollection.fetchAssetCollections(
-            with: .smartAlbum,
-            subtype: .smartAlbumSelfPortraits,
-            options: nil
-        )
-        
-        guard let selfies = selfiesCollection.firstObject else {
-            return []
-        }
-        
-        let assets = PHAsset.fetchAssets(in: selfies, options: nil)
-        var photos: [PHAsset] = []
-        
-        assets.enumerateObjects { asset, _, _ in
-            if asset.mediaType == .image {
-                photos.append(asset)
-            }
-        }
-        
-        print("Found \\(photos.count) selfies")
-        return photos
-    }
-    
-    /// Get photos from WhatsApp folder (or any third-party app folder)
+    }`}
+        />
+
+        <DocHeading level={3}>Part 3: Get Photos from WhatsApp Folder</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="SpecificFolderAccess.swift"
+          code={`    /// Get photos from WhatsApp folder (or any third-party app folder)
     func getWhatsAppPhotos() -> [PHAsset] {
         // Step 1: Fetch all regular albums (not smart albums)
         let allAlbums = PHAssetCollection.fetchAssetCollections(
@@ -293,33 +337,6 @@ class SpecificFolderAccess {
         
         return whatsappPhotos
     }
-    
-    /// Get photos from multiple specific folders
-    func getPhotosFromMultipleFolders(folderTypes: [FolderType]) -> [PHAsset] {
-        var allPhotos: [PHAsset] = []
-        
-        for folderType in folderTypes {
-            switch folderType {
-            case .favorites:
-                allPhotos.append(contentsOf: getFavoritePhotos())
-            case .screenshots:
-                allPhotos.append(contentsOf: getScreenshotPhotos())
-            case .selfies:
-                allPhotos.append(contentsOf: getSelfiePhotos())
-            case .whatsapp:
-                allPhotos.append(contentsOf: getWhatsAppPhotos())
-            }
-        }
-        
-        return allPhotos
-    }
-}
-
-enum FolderType {
-    case favorites
-    case screenshots
-    case selfies
-    case whatsapp
 }`}
         />
 
@@ -358,6 +375,16 @@ enum FolderType {
         <DocParagraph>
           Monitor permission changes to react when users modify access in Settings:
         </DocParagraph>
+
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Check initial status: When the observer is created, check the current permission status',
+          '2. Listen for app activation: When the app becomes active (user returns from Settings), check if permission changed',
+          '3. Detect changes: Compare new status with old status to see if user changed permission in Settings',
+          '4. Handle changes: If permission was granted, resume scanning. If denied, pause scanning',
+        ]} />
 
         <CodeBlock
           language="swift"
@@ -426,6 +453,19 @@ class PermissionObserver: ObservableObject {
           When you check the permission status and it's denied, you'll get a specific error. 
           Here's how to detect and handle it:
         </DocParagraph>
+
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Define error types: Create an enum with different permission error cases (denied, restricted, etc.)',
+          '2. Developer messages: Each error has a developerMessage property that shows detailed error info in console/logs',
+          '3. User messages: Each error has a userFriendlyMessage property that shows simple, friendly text to users',
+          '4. Check permission status: Use PHPhotoLibrary.authorizationStatus() to check current status',
+          '5. Handle each case: Based on status (denied/restricted/notDetermined), create appropriate error and show message',
+          '6. Log for developer: Print detailed error to console for debugging',
+          '7. Show to user: Display friendly message in UI asking user to upload photos manually or enable access',
+        ]} />
 
         <CodeBlock
           language="swift"
@@ -517,6 +557,19 @@ class PermissionErrorHandler {
           This is what the user sees in your app:
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Create error view: Build a SwiftUI view that displays when permission is denied',
+          '2. Show icon and title: Display a visual icon and "Photo Access Needed" title',
+          '3. Display user message: Show the friendly error message explaining why access is needed',
+          '4. Provide manual upload option: Add a button that opens an image picker for manual photo upload',
+          '5. Settings button: Add option to open iOS Settings so user can enable access',
+          '6. Handle uploaded image: When user uploads manually, process the image with HyperPersonalization',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Main Error View Structure</DocHeading>
         <CodeBlock
           language="swift"
           filename="PermissionDeniedView.swift"
@@ -545,8 +598,17 @@ struct PermissionDeniedView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            
-            // Alternative: Manual upload option
+        }
+        .padding(32)
+    }
+}`}
+        />
+
+        <DocHeading level={3}>Part 2: Manual Upload Button</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="PermissionDeniedView.swift"
+          code={`            // Alternative: Manual upload option
             VStack(spacing: 16) {
                 Text("Or upload a photo manually:")
                     .font(.subheadline)
@@ -577,11 +639,8 @@ struct PermissionDeniedView: View {
             .font(.subheadline)
             .foregroundColor(.blue)
         }
-        .padding(32)
         .sheet(isPresented: $showImagePicker) {
-            // Show image picker for manual upload
             ImagePickerView { image in
-                // Handle uploaded image
                 handleUploadedImage(image)
             }
         }
@@ -600,9 +659,14 @@ struct PermissionDeniedView: View {
         // Process this image with HyperPersonalization
         // analyzeImage(image)
     }
-}
+}`}
+        />
 
-/// Simple image picker for manual upload
+        <DocHeading level={3}>Part 3: Image Picker Component</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="PermissionDeniedView.swift"
+          code={`/// Simple image picker for manual upload
 struct ImagePickerView: UIViewControllerRepresentable {
     let onImageSelected: (UIImage) -> Void
     
@@ -642,6 +706,20 @@ struct ImagePickerView: UIViewControllerRepresentable {
           Here's a complete example showing how to handle permission denial from start to finish:
         </DocParagraph>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Create permission manager: Set up an ObservableObject that manages permission state',
+          '2. Check status on app launch: When app starts, check current permission status',
+          '3. Request if needed: If status is notDetermined, request permission',
+          '4. Handle result: Based on user\'s choice, either proceed or show error UI',
+          '5. Log for developer: Print detailed error codes and messages to console',
+          '6. Show to user: Display friendly UI with options to upload manually or go to Settings',
+          '7. Update UI: Use @Published properties to automatically update SwiftUI views',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Permission Manager Class</DocHeading>
         <CodeBlock
           language="swift"
           filename="CompletePermissionFlow.swift"
@@ -678,9 +756,14 @@ class PermissionFlowManager: ObservableObject {
             // Step 4: Proceed with photo analysis
             proceedWithPhotoAnalysis()
         }
-    }
-    
-    /// Handle permission result
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Handle Permission Result</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="CompletePermissionFlow.swift"
+          code={`    /// Handle permission result
     private func handlePermissionResult(_ status: PHAuthorizationStatus) {
         switch status {
         case .denied:
@@ -711,9 +794,14 @@ class PermissionFlowManager: ObservableObject {
         print("Starting photo analysis...")
         // Your normal HyperPersonalization flow here
     }
-}
+}`}
+        />
 
-/// Usage in SwiftUI View
+        <DocHeading level={3}>Part 3: Usage in SwiftUI View</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="CompletePermissionFlow.swift"
+          code={`/// Usage in SwiftUI View
 struct ContentView: View {
     @StateObject private var permissionManager = PermissionFlowManager()
     

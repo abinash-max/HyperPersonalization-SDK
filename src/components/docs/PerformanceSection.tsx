@@ -307,8 +307,108 @@ enum PowerMode {
         This section shows you how the SDK manages memory efficiently to prevent crashes.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Set memory budget: Define maximum memory (100 MB) for image processing',
+        '2. Process in batches: Split photos into small batches (10 at a time) to control memory',
+        '3. Use autoreleasepool: Release memory after each batch is processed',
+        '4. Check memory pressure: Monitor if memory usage is getting too high',
+        '5. Reduce batch size: If memory is high, process fewer photos at once',
+        '6. Load optimized images: Use PHImageManager to load images at exact target size (no downsampling needed)',
+        '7. Monitor memory: Check actual memory usage using mach_task_basic_info',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Batch Processing</DocHeading>
       <CodeBlock 
-        code={memoryManagementCode} 
+        code={`import HyperPersonalization
+
+/// Memory-efficient image processing
+class PLImageProcessor {
+    
+    /// Maximum memory budget for image processing (in bytes)
+    private let memoryBudget: Int = 100 * 1024 * 1024 // 100 MB
+    
+    /// Process images with memory management
+    func processImages(
+        assets: [PHAsset],
+        batchSize: Int = 10
+    ) async throws -> [ProcessingResult] {
+        var results: [ProcessingResult] = []
+        
+        // Process in batches to control memory
+        for batch in assets.chunked(into: batchSize) {
+            autoreleasepool {
+                let batchResults = await processBatch(batch)
+                results.append(contentsOf: batchResults)
+            }
+            
+            // Check memory pressure
+            if isMemoryPressureHigh() {
+                await reduceBatchSize()
+                try await Task.sleep(nanoseconds: 100_000_000) // 100ms cooldown
+            }
+        }
+        
+        return results
+    }`} 
+        filename="PLImageProcessor.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Optimized Image Loading</DocHeading>
+      <CodeBlock 
+        code={`    /// Load image with automatic downsampling
+    func loadOptimizedImage(
+        from asset: PHAsset,
+        targetSize: CGSize
+    ) async throws -> UIImage {
+        let options = PHImageRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .exact
+        options.isNetworkAccessAllowed = false
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            PHImageManager.default().requestImage(
+                for: asset,
+                targetSize: targetSize,
+                contentMode: .aspectFit,
+                options: options
+            ) { image, info in
+                if let error = info?[PHImageErrorKey] as? Error {
+                    continuation.resume(throwing: error)
+                } else if let image = image {
+                    continuation.resume(returning: image)
+                } else {
+                    continuation.resume(throwing: PLError.imageLoadFailed)
+                }
+            }
+        }
+    }`} 
+        filename="PLImageProcessor.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 3: Memory Pressure Check</DocHeading>
+      <CodeBlock 
+        code={`    /// Check current memory pressure
+    private func isMemoryPressureHigh() -> Bool {
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(
+            MemoryLayout<mach_task_basic_info>.size
+        ) / 4
+        
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+        
+        guard result == KERN_SUCCESS else { return false }
+        return info.resident_size > memoryBudget
+    }
+}`} 
         filename="PLImageProcessor.swift"
         language="swift"
       />
@@ -328,8 +428,128 @@ enum PowerMode {
         multiple operations running at the same time without blocking your app's UI.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Use Swift Actor: Use actor keyword to safely share data between threads',
+        '2. Start scan: Begin scanning photos with progress updates',
+        '3. Create async stream: Use AsyncStream to send progress updates as they happen',
+        '4. Process phases: Execute phases sequentially (fetch assets → analyze rooms → analyze faces)',
+        '5. Update progress: Send progress updates for each phase (0.0 to 1.0)',
+        '6. Handle cancellation: Allow cancelling ongoing scan operations',
+        '7. Calculate total progress: Combine progress from all phases into overall percentage',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Start Scan with Progress</DocHeading>
       <CodeBlock 
-        code={concurrencyCode} 
+        code={`import HyperPersonalization
+
+/// Thread-safe scanning coordinator using Swift Concurrency
+actor PLScanCoordinator {
+    private var isScanning = false
+    private var progress: ScanProgress = .idle
+    private var cancellationToken: CancellationToken?
+    
+    /// Start scanning with progress updates
+    func startScan(
+        options: ScanOptions
+    ) async throws -> AsyncStream<ScanProgress> {
+        guard !isScanning else {
+            throw PLError.scanAlreadyInProgress
+        }
+        
+        isScanning = true
+        cancellationToken = CancellationToken()
+        
+        return AsyncStream { continuation in
+            Task.detached(priority: .userInitiated) { [weak self] in
+                guard let self = self else { return }
+                
+                do {
+                    // Phase 1: Fetch assets
+                    await self.updateProgress(.fetchingAssets(0))
+                    continuation.yield(.fetchingAssets(0))
+                    
+                    let assets = try await self.fetchAssets(options: options)
+                    
+                    // Phase 2: Analyze rooms
+                    await self.updateProgress(.analyzingRooms(0))
+                    continuation.yield(.analyzingRooms(0))
+                    
+                    let rooms = try await self.analyzeRooms(
+                        assets: assets,
+                        onProgress: { progress in
+                            continuation.yield(.analyzingRooms(progress))
+                        }
+                    )
+                    
+                    // Phase 3: Analyze faces
+                    await self.updateProgress(.analyzingFaces(0))
+                    continuation.yield(.analyzingFaces(0))
+                    
+                    let faces = try await self.analyzeFaces(
+                        assets: assets,
+                        onProgress: { progress in
+                            continuation.yield(.analyzingFaces(progress))
+                        }
+                    )
+                    
+                    // Complete
+                    await self.updateProgress(.completed(rooms: rooms, faces: faces))
+                    continuation.yield(.completed(rooms: rooms, faces: faces))
+                    
+                } catch {
+                    continuation.yield(.failed(error))
+                }
+                
+                await self.setIsScanning(false)
+                continuation.finish()
+            }
+        }
+    }`} 
+        filename="PLScanCoordinator.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Cancel and Progress Types</DocHeading>
+      <CodeBlock 
+        code={`    /// Cancel ongoing scan
+    func cancelScan() {
+        cancellationToken?.cancel()
+        isScanning = false
+    }
+    
+    private func updateProgress(_ progress: ScanProgress) {
+        self.progress = progress
+    }
+    
+    private func setIsScanning(_ value: Bool) {
+        self.isScanning = value
+    }
+}
+
+// MARK: - Progress Types
+
+enum ScanProgress: Sendable {
+    case idle
+    case fetchingAssets(Float)
+    case analyzingRooms(Float)
+    case analyzingFaces(Float)
+    case completed(rooms: [SelectedRoom], faces: BestFacesResult)
+    case failed(Error)
+    
+    var percentComplete: Float {
+        switch self {
+        case .idle: return 0
+        case .fetchingAssets(let p): return p * 0.1
+        case .analyzingRooms(let p): return 0.1 + p * 0.4
+        case .analyzingFaces(let p): return 0.5 + p * 0.5
+        case .completed: return 1.0
+        case .failed: return 0
+        }
+    }
+}`} 
         filename="PLScanCoordinator.swift"
         language="swift"
       />
@@ -346,8 +566,113 @@ enum PowerMode {
         fewer photos at a time to save battery. When charging, it can process more photos faster.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Check device state: Check battery level, charging status, and thermal state',
+        '2. Determine power mode: Choose performance/balanced/lowPower based on device state',
+        '3. Configure scan: Set batch size, concurrency, and model precision based on power mode',
+        '4. Schedule scan: Monitor for charging state and schedule scan when device is charging',
+        '5. Adjust settings: Reduce batch size and disable GPU on low battery to save power',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Get Optimal Configuration</DocHeading>
       <CodeBlock 
-        code={batteryOptimizationCode} 
+        code={`import HyperPersonalization
+
+/// Battery-aware scanning configuration
+class PLBatteryOptimizer {
+    
+    /// Determine optimal scan configuration based on device state
+    func getOptimalConfiguration() -> ScanConfiguration {
+        let batteryState = UIDevice.current.batteryState
+        let batteryLevel = UIDevice.current.batteryLevel
+        let thermalState = ProcessInfo.processInfo.thermalState
+        
+        // Determine power mode
+        let powerMode: PowerMode = {
+            switch (batteryState, batteryLevel, thermalState) {
+            case (.charging, _, _), (.full, _, _):
+                return .performance
+            case (_, let level, _) where level > 0.5:
+                return .balanced
+            case (_, _, .serious), (_, _, .critical):
+                return .lowPower
+            default:
+                return .balanced
+            }
+        }()
+        
+        return ScanConfiguration(powerMode: powerMode)
+    }`} 
+        filename="PLBatteryOptimizer.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Schedule Scan</DocHeading>
+      <CodeBlock 
+        code={`    /// Schedule scan for optimal conditions
+    func scheduleScan(
+        completion: @escaping (ScanConfiguration) -> Void
+    ) {
+        // Monitor for charging state
+        NotificationCenter.default.addObserver(
+            forName: UIDevice.batteryStateDidChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self = self else { return }
+            
+            if UIDevice.current.batteryState == .charging {
+                completion(self.getOptimalConfiguration())
+            }
+        }
+    }
+}`} 
+        filename="PLBatteryOptimizer.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 3: Scan Configuration</DocHeading>
+      <CodeBlock 
+        code={`struct ScanConfiguration {
+    let powerMode: PowerMode
+    
+    var batchSize: Int {
+        switch powerMode {
+        case .performance: return 20
+        case .balanced: return 10
+        case .lowPower: return 5
+        }
+    }
+    
+    var maxConcurrentOperations: Int {
+        switch powerMode {
+        case .performance: return 4
+        case .balanced: return 2
+        case .lowPower: return 1
+        }
+    }
+    
+    var modelPrecision: ModelPrecision {
+        switch powerMode {
+        case .performance: return .float32
+        case .balanced: return .float16
+        case .lowPower: return .float16
+        }
+    }
+    
+    var enableGPU: Bool {
+        powerMode != .lowPower
+    }
+}
+
+enum PowerMode {
+    case performance
+    case balanced
+    case lowPower
+}`} 
         filename="PLBatteryOptimizer.swift"
         language="swift"
       />

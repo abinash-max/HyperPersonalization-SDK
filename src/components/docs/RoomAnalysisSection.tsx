@@ -16,6 +16,21 @@ export function RoomAnalysisSection() {
 
         <DocHeading level={2}>Classification Pipeline</DocHeading>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Process all photos: Loop through all photo assets from the gallery',
+          '2. Update progress: Call progress handler to show user how many photos have been processed',
+          '3. Skip non-images: Only process assets with mediaType == .image',
+          '4. Skip screenshots: Detect and skip screenshots (they\'re rarely useful for room detection)',
+          '5. Classify each room: Pass each photo to the room classifier model',
+          '6. Check confidence: Only keep results above acceptance threshold (0.60)',
+          '7. Reject outdoor/other: Skip photos classified as outdoor or "other" room types',
+          '8. Store results: Save classified rooms with their type, confidence, and attributes',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Main Classification Loop</DocHeading>
         <CodeBlock
           language="swift"
           filename="RoomClassificationPipeline.swift"
@@ -77,9 +92,14 @@ class RoomClassificationPipeline {
         
         progressHandler(1.0)
         return classifiedRooms
-    }
-    
-    private func classifyRoom(asset: PHAsset) async throws -> RoomClassificationResult {
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Classify Single Room</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="RoomClassificationPipeline.swift"
+          code={`    private func classifyRoom(asset: PHAsset) async throws -> RoomClassificationResult {
         // Prepare image for model
         let pixelBuffer = try await imagePipeline.prepareInput(
             asset: asset,
@@ -138,6 +158,20 @@ struct ClassifiedRoom {
 
         <DocHeading level={2}>Local Room Index</DocHeading>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Create actor for thread safety: Use Swift actor to safely store room data from multiple threads',
+          '2. Store classified rooms: When a room is classified, add it to the index grouped by room type',
+          '3. Sort by confidence: Keep rooms sorted by confidence score (best quality first)',
+          '4. Limit storage: Keep only top 20 rooms per room type to save memory',
+          '5. Persist to disk: Save the index to UserDefaults so it persists between app launches',
+          '6. Retrieve best rooms: Get top N rooms for a specific type (e.g., top 5 living rooms)',
+          '7. Load from disk: When app starts, load previously classified rooms from disk',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Store Classified Rooms</DocHeading>
         <CodeBlock
           language="swift"
           filename="RoomAssetStore.swift"
@@ -169,9 +203,14 @@ actor RoomAssetStore {
         roomIndex[room.roomType] = Array(rooms.prefix(20))
         
         persistIndex()
-    }
-    
-    /// Retrieve best rooms for a specific type
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Retrieve Rooms</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="RoomAssetStore.swift"
+          code={`    /// Retrieve best rooms for a specific type
     func getBestRooms(
         type: RoomType,
         limit: Int = 5
@@ -191,9 +230,14 @@ actor RoomAssetStore {
             options: nil
         )
         return result.firstObject
-    }
-    
-    private func persistIndex() {
+    }`}
+        />
+
+        <DocHeading level={3}>Part 3: Persistence</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="RoomAssetStore.swift"
+          code={`    private func persistIndex() {
         if let data = try? JSONEncoder().encode(roomIndex) {
             storage.set(data, forKey: indexKey)
         }
@@ -220,6 +264,21 @@ struct RoomAsset: Codable {
 
         <DocHeading level={2}>UI Carousel Component</DocHeading>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Create SwiftUI view: Build a horizontal scrolling carousel to display room images',
+          '2. Load rooms on appear: When view appears, fetch best rooms for the specified room type',
+          '3. Display header: Show room type name and count of available rooms',
+          '4. Create horizontal scroll: Use ScrollView(.horizontal) for side-scrolling carousel',
+          '5. Lazy load images: Use LazyHStack to only load images when they appear on screen',
+          '6. Load thumbnails: For each room card, load the thumbnail image from Photos library',
+          '7. Display room card: Show image, confidence badge, and room type',
+          '8. Show loading state: Display placeholder while images are loading',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Main Carousel View</DocHeading>
         <CodeBlock
           language="swift"
           filename="RoomCarouselView.swift"
@@ -265,9 +324,14 @@ struct RoomCarouselView: View {
         .task {
             await loadRooms()
         }
-    }
-    
-    private func loadRooms() async {
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Load Rooms and Images</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="RoomCarouselView.swift"
+          code={`    private func loadRooms() async {
         let store = await HyperPersonalizationSDK.shared.roomStore
         rooms = await store.getBestRooms(type: roomType, limit: 10)
     }
@@ -284,9 +348,14 @@ struct RoomCarouselView: View {
             }
         }
     }
-}
+}`}
+        />
 
-struct RoomCard: View {
+        <DocHeading level={3}>Part 3: Room Card Component</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="RoomCarouselView.swift"
+          code={`struct RoomCard: View {
     let room: RoomAsset
     let image: UIImage?
     
@@ -335,6 +404,19 @@ struct RoomCard: View {
 
         <DocHeading level={2}>Rejection Criteria</DocHeading>
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Check confidence score: Reject if room classification confidence is below 0.60',
+          '2. Detect blur: Use Laplacian variance to detect blurry images (low sharpness score)',
+          '3. Check brightness: Reject images that are too dark (below 0.15) or too bright (above 0.90)',
+          '4. Detect clutter: Reject heavily cluttered rooms (clutter score above 0.85)',
+          '5. Check room type: Reject outdoor scenes and "other" room types',
+          '6. Calculate overall score: Combine all quality metrics into an overall quality score',
+          '7. Return quality result: Return whether image is acceptable and list any quality issues found',
+        ]} />
+
         <DocList items={[
           <><strong>Low Confidence Score</strong> — Below 0.60 for room classification</>,
           <><strong>Blurry Images</strong> — Detected via Laplacian variance analysis</>,
@@ -344,6 +426,22 @@ struct RoomCard: View {
           <><strong>Cropped/Partial</strong> — Insufficient room context visible</>,
         ]} />
 
+        <DocParagraph>
+          Here's what the code below does, step by step:
+        </DocParagraph>
+        <DocList items={[
+          '1. Define quality thresholds: Set minimum values for confidence, brightness, sharpness, etc.',
+          '2. Evaluate room quality: Check all quality criteria for a classified room',
+          '3. Check confidence: Reject if confidence is below minimum threshold',
+          '4. Check brightness: Measure image brightness and reject if too dark or too light',
+          '5. Check clutter level: Reject if room is too cluttered (hard to see furniture)',
+          '6. Calculate sharpness: Use Laplacian filter to detect blur (low variance = blurry)',
+          '7. Check room type: Reject outdoor and "other" room types',
+          '8. Collect issues: List all quality problems found',
+          '9. Calculate overall score: Combine all metrics into a single quality score',
+        ]} />
+
+        <DocHeading level={3}>Part 1: Quality Thresholds and Evaluation</DocHeading>
         <CodeBlock
           language="swift"
           filename="RoomQualityFilter.swift"
@@ -401,9 +499,14 @@ class RoomQualityFilter {
             issues: issues,
             overallScore: calculateOverallScore(result, sharpness: sharpness)
         )
-    }
-    
-    /// Calculate image sharpness using Laplacian variance
+    }`}
+        />
+
+        <DocHeading level={3}>Part 2: Calculate Sharpness</DocHeading>
+        <CodeBlock
+          language="swift"
+          filename="RoomQualityFilter.swift"
+          code={`    /// Calculate image sharpness using Laplacian variance
     private func calculateSharpness(_ image: CGImage) -> Float {
         let ciImage = CIImage(cgImage: image)
         

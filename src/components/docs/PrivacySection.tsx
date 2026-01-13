@@ -284,8 +284,99 @@ class PLImageNormalizer {
         the saved results. This makes the app much faster and uses less battery.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Create cache key: Hash the asset ID (SHA-256) to create a safe filename',
+        '2. Store results: Save analysis results to disk as JSON files',
+        '3. Retrieve cached results: Load previously saved results from disk',
+        '4. Validate cache: Check if cache is still valid (same SDK version, not too old)',
+        '5. Check if re-analysis needed: Compare photo modification date with cache date',
+        '6. Auto-invalidate: Delete cache if SDK version changed or cache is older than 30 days',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Store and Retrieve Cache</DocHeading>
       <CodeBlock 
-        code={cachingMechanismCode} 
+        code={`import HyperPersonalization
+
+/// Local caching for analysis results
+class PLResultCache {
+    private let cacheDirectory: URL
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
+    
+    /// Cache key based on asset local identifier
+    private func cacheKey(for assetId: String) -> String {
+        // Hash the identifier for filesystem safety
+        return assetId.sha256Hash
+    }
+    
+    /// Store analysis result for an asset
+    func cache(
+        result: AnalysisResult,
+        for assetId: String
+    ) async throws {
+        let key = cacheKey(for: assetId)
+        let fileURL = cacheDirectory.appendingPathComponent("\\(key).json")
+        
+        let data = try encoder.encode(CachedResult(
+            assetId: assetId,
+            result: result,
+            cachedAt: Date(),
+            sdkVersion: PLVersion.current
+        ))
+        
+        try data.write(to: fileURL, options: .atomic)
+    }`} 
+        filename="PLResultCache.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Validate and Check Cache</DocHeading>
+      <CodeBlock 
+        code={`    /// Retrieve cached result if available and valid
+    func getCachedResult(for assetId: String) async -> AnalysisResult? {
+        let key = cacheKey(for: assetId)
+        let fileURL = cacheDirectory.appendingPathComponent("\\(key).json")
+        
+        guard let data = try? Data(contentsOf: fileURL),
+              let cached = try? decoder.decode(CachedResult.self, from: data) else {
+            return nil
+        }
+        
+        // Invalidate if SDK version changed (models may differ)
+        guard cached.sdkVersion == PLVersion.current else {
+            try? FileManager.default.removeItem(at: fileURL)
+            return nil
+        }
+        
+        // Invalidate if cache is too old (30 days)
+        guard cached.cachedAt.timeIntervalSinceNow > -30 * 24 * 60 * 60 else {
+            try? FileManager.default.removeItem(at: fileURL)
+            return nil
+        }
+        
+        return cached.result
+    }
+    
+    /// Check if asset needs re-analysis
+    func needsAnalysis(assetId: String, modificationDate: Date) async -> Bool {
+        guard let cached = await getCachedResult(for: assetId) else {
+            return true
+        }
+        
+        // Re-analyze if photo was modified after caching
+        return modificationDate > cached.cachedAt
+    }
+}
+
+struct CachedResult: Codable {
+    let assetId: String
+    let result: AnalysisResult
+    let cachedAt: Date
+    let sdkVersion: String
+}`} 
         filename="PLResultCache.swift"
         language="swift"
       />
@@ -305,8 +396,142 @@ class PLImageNormalizer {
         This ensures the models work accurately regardless of how the photo was taken or stored.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Handle EXIF orientation: Fix image rotation based on EXIF data (some photos are rotated)',
+        '2. Resize image: Resize to target size (e.g., 224×224 for gender/age models)',
+        '3. Convert to RGB: Convert image to RGB color space (CoreML requires RGB, not BGR)',
+        '4. Create pixel buffer: Convert UIImage to CVPixelBuffer which CoreML models need',
+        '5. Lock buffer: Lock pixel buffer for writing, draw image, then unlock',
+        '6. Return buffer: Return CVPixelBuffer ready to pass to model',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Main Normalization Function</DocHeading>
       <CodeBlock 
-        code={imageNormalizationCode} 
+        code={`import HyperPersonalization
+
+/// Image normalization for consistent model input
+class PLImageNormalizer {
+    
+    /// Normalize image for model input
+    func normalize(
+        image: UIImage,
+        targetSize: CGSize = CGSize(width: 224, height: 224)
+    ) throws -> CVPixelBuffer {
+        // Step 1: Handle EXIF orientation
+        let orientedImage = applyEXIFOrientation(image)
+        
+        // Step 2: Resize to target dimensions
+        let resizedImage = resize(orientedImage, to: targetSize)
+        
+        // Step 3: Convert color space to RGB
+        guard let rgbImage = convertToRGB(resizedImage) else {
+            throw PLError.colorSpaceConversionFailed
+        }
+        
+        // Step 4: Create pixel buffer
+        return try createPixelBuffer(from: rgbImage, size: targetSize)
+    }`} 
+        filename="PLImageNormalizer.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Orientation and Color Space</DocHeading>
+      <CodeBlock 
+        code={`    /// Apply EXIF orientation to normalize image orientation
+    private func applyEXIFOrientation(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        
+        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
+        image.draw(in: CGRect(origin: .zero, size: image.size))
+        let normalizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return normalizedImage ?? image
+    }
+    
+    /// Convert image to RGB color space (CoreML requires RGB, not BGR)
+    private func convertToRGB(_ image: UIImage) -> UIImage? {
+        guard let cgImage = image.cgImage else { return nil }
+        
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        
+        guard let context = CGContext(
+            data: nil,
+            width: cgImage.width,
+            height: cgImage.height,
+            bitsPerComponent: 8,
+            bytesPerRow: cgImage.width * 4,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo.rawValue
+        ) else { return nil }
+        
+        context.draw(cgImage, in: CGRect(
+            x: 0, y: 0,
+            width: cgImage.width,
+            height: cgImage.height
+        ))
+        
+        guard let outputCGImage = context.makeImage() else { return nil }
+        return UIImage(cgImage: outputCGImage)
+    }`} 
+        filename="PLImageNormalizer.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 3: Create Pixel Buffer</DocHeading>
+      <CodeBlock 
+        code={`    /// Create CVPixelBuffer for CoreML input
+    private func createPixelBuffer(
+        from image: UIImage,
+        size: CGSize
+    ) throws -> CVPixelBuffer {
+        let attrs: [CFString: Any] = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: true
+        ]
+        
+        var pixelBuffer: CVPixelBuffer?
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            Int(size.width),
+            Int(size.height),
+            kCVPixelFormatType_32ARGB,
+            attrs as CFDictionary,
+            &pixelBuffer
+        )
+        
+        guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
+            throw PLError.pixelBufferCreationFailed
+        }
+        
+        CVPixelBufferLockBaseAddress(buffer, [])
+        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
+        
+        guard let context = CGContext(
+            data: CVPixelBufferGetBaseAddress(buffer),
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: 8,
+            bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue
+        ) else {
+            throw PLError.contextCreationFailed
+        }
+        
+        guard let cgImage = image.cgImage else {
+            throw PLError.invalidImage
+        }
+        
+        context.draw(cgImage, in: CGRect(origin: .zero, size: size))
+        
+        return buffer
+    }
+}`} 
         filename="PLImageNormalizer.swift"
         language="swift"
       />

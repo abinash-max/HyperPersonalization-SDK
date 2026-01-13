@@ -363,8 +363,140 @@ enum PLErrorCode: String, Error {
         Mock data includes realistic results like "this is a living room with 92% confidence" or "this person is male".
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Enable debug mode: Turn on debug mode to use mock data instead of real analysis',
+        '2. Generate mock rooms: Create fake room analysis results for testing',
+        '3. Generate mock faces: Create fake face analysis results (male, female, kids)',
+        '4. Generate mock clustering: Create fake clustering results with multiple clusters',
+        '5. Simulate generation: Mock generation API with delay to simulate real API response time',
+        '6. Disable in production: Debug mode is automatically disabled in Release builds',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Debug Configuration</DocHeading>
       <CodeBlock 
-        code={mockTestModeCode} 
+        code={`import HyperPersonalization
+
+/// Debug mode configuration for development and testing
+class PLDebugConfiguration {
+    static var isDebugModeEnabled = false
+    static var mockDataProvider: PLMockDataProvider?
+    
+    /// Enable debug mode with mock data
+    static func enableDebugMode(
+        with provider: PLMockDataProvider = .default
+    ) {
+        isDebugModeEnabled = true
+        mockDataProvider = provider
+        
+        print("[HyperPersonalization] Debug mode enabled with mock data")
+    }
+    
+    /// Disable debug mode
+    static func disableDebugMode() {
+        isDebugModeEnabled = false
+        mockDataProvider = nil
+    }
+}`} 
+        filename="PLDebugConfiguration.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Mock Data Provider</DocHeading>
+      <CodeBlock 
+        code={`/// Mock data provider for testing
+class PLMockDataProvider {
+    static let \`default\` = PLMockDataProvider()
+    
+    /// Generate mock room analysis results
+    func mockRoomAnalysis() -> [SelectedRoom] {
+        return [
+            SelectedRoom(
+                assetId: "mock_living_room_1",
+                roomType: .livingRoom,
+                confidence: 0.92,
+                thumbnailURL: Bundle.main.url(forResource: "mock_living_room", withExtension: "jpg")
+            ),
+            SelectedRoom(
+                assetId: "mock_bedroom_1",
+                roomType: .bedroom,
+                confidence: 0.88,
+                thumbnailURL: Bundle.main.url(forResource: "mock_bedroom", withExtension: "jpg")
+            )
+        ]
+    }
+    
+    /// Generate mock face analysis results
+    func mockFaceAnalysis() -> BestFacesResult {
+        return BestFacesResult(
+            bestMale: SelectedFace(
+                assetId: "mock_male_1",
+                profile: FashionProfile(
+                    gender: .male,
+                    genderConfidence: 0.95,
+                    ageGroup: .adult,
+                    ageConfidence: 0.87
+                ),
+                clusterSize: 15,
+                clarityScore: 0.91
+            ),
+            bestFemale: SelectedFace(
+                assetId: "mock_female_1",
+                profile: FashionProfile(
+                    gender: .female,
+                    genderConfidence: 0.93,
+                    ageGroup: .adult,
+                    ageConfidence: 0.85
+                ),
+                clusterSize: 12,
+                clarityScore: 0.89
+            ),
+            bestKid: nil
+        )
+    }`} 
+        filename="PLDebugConfiguration.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 3: Mock Clustering and Generation</DocHeading>
+      <CodeBlock 
+        code={`    /// Generate mock clustering results
+    func mockClusteringResult() -> ClusteringResult {
+        return ClusteringResult(
+            clusters: [
+                FaceCluster(
+                    clusterId: "cluster_1",
+                    memberCount: 15,
+                    members: (1...15).map { i in
+                        ClusterMember(
+                            assetId: "face_\\(i)",
+                            distanceFromCentroid: Float.random(in: 0.1...0.5),
+                            clarityScore: Float.random(in: 0.7...0.95)
+                        )
+                    },
+                    centroid: Array(repeating: 0.0, count: 512)
+                )
+            ],
+            noise: ["noise_1", "noise_2"],
+            processingTime: 1.5
+        )
+    }
+    
+    /// Simulate generation with delay
+    func mockGeneration(
+        delay: TimeInterval = 2.0
+    ) async -> GenerationResult {
+        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        
+        return GenerationResult(
+            generatedImageURL: URL(string: "https://mock.hyperpersonalization.dev/generated/mock_result.jpg")!,
+            processingTime: delay,
+            confidence: 0.88
+        )
+    }
+}`} 
         filename="PLDebugConfiguration.swift"
         language="swift"
       />
@@ -389,8 +521,171 @@ enum PLErrorCode: String, Error {
         and fix issues when they occur.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Create log categories: Separate logs by category (Scan, Model, API, Cache)',
+        '2. Set verbosity level: Control how much detail to log (debug, info, warning, error)',
+        '3. Log scan events: Log when photos are loaded, processed, analyzed',
+        '4. Log model inference: Log model predictions, inference times, confidence scores',
+        '5. Log API calls: Log API requests, responses, errors, and response times',
+        '6. Trace asset lifecycle: Track each photo through all processing stages',
+        '7. Format messages: Add metadata (assetId, model type, etc.) to log messages',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Logger Setup and Scan Logging</DocHeading>
       <CodeBlock 
-        code={loggingTracingCode} 
+        code={`import HyperPersonalization
+import os.log
+
+/// Comprehensive logging for debugging
+class PLLogger {
+    static let shared = PLLogger()
+    
+    private let subsystem = "dev.hyperpersonalization.sdk"
+    
+    // Log categories
+    private lazy var scanLog = OSLog(subsystem: subsystem, category: "Scan")
+    private lazy var modelLog = OSLog(subsystem: subsystem, category: "Model")
+    private lazy var apiLog = OSLog(subsystem: subsystem, category: "API")
+    private lazy var cacheLog = OSLog(subsystem: subsystem, category: "Cache")
+    
+    /// Log verbosity level
+    var verbosity: LogVerbosity = .info
+    
+    /// Log scan lifecycle events
+    func logScan(
+        _ message: String,
+        assetId: String? = nil,
+        level: LogLevel = .info
+    ) {
+        guard level.rawValue >= verbosity.rawValue else { return }
+        
+        let formattedMessage = formatMessage(
+            message,
+            metadata: ["assetId": assetId].compactMapValues { $0 }
+        )
+        
+        os_log("%{public}@", log: scanLog, type: level.osLogType, formattedMessage)
+    }`} 
+        filename="PLLogger.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: Model and API Logging</DocHeading>
+      <CodeBlock 
+        code={`    /// Log model inference events
+    func logModel(
+        _ message: String,
+        modelType: ModelType,
+        inferenceTime: TimeInterval? = nil,
+        level: LogLevel = .info
+    ) {
+        guard level.rawValue >= verbosity.rawValue else { return }
+        
+        var metadata: [String: String] = ["model": modelType.rawValue]
+        if let time = inferenceTime {
+            metadata["inferenceTime"] = String(format: "%.2fms", time * 1000)
+        }
+        
+        let formattedMessage = formatMessage(message, metadata: metadata)
+        os_log("%{public}@", log: modelLog, type: level.osLogType, formattedMessage)
+    }
+    
+    /// Log API interactions
+    func logAPI(
+        _ message: String,
+        endpoint: String,
+        statusCode: Int? = nil,
+        duration: TimeInterval? = nil,
+        level: LogLevel = .info
+    ) {
+        guard level.rawValue >= verbosity.rawValue else { return }
+        
+        var metadata: [String: String] = ["endpoint": endpoint]
+        if let code = statusCode { metadata["status"] = String(code) }
+        if let dur = duration { metadata["duration"] = String(format: "%.2fs", dur) }
+        
+        let formattedMessage = formatMessage(message, metadata: metadata)
+        os_log("%{public}@", log: apiLog, type: level.osLogType, formattedMessage)
+    }`} 
+        filename="PLLogger.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 3: Asset Tracing and Helpers</DocHeading>
+      <CodeBlock 
+        code={`    /// Trace full asset lifecycle
+    func traceAsset(
+        id: String,
+        stage: ProcessingStage,
+        result: Any? = nil
+    ) {
+        let stageEmoji: String = {
+            switch stage {
+            case .loaded: return "📥"
+            case .preprocessed: return "🔄"
+            case .analyzed: return "🔍"
+            case .clustered: return "👥"
+            case .selected: return "✅"
+            case .generated: return "🎨"
+            case .failed: return "❌"
+            }
+        }()
+        
+        let message = "\\(stageEmoji) [\\(id)] \\(stage.rawValue)"
+        logScan(message, assetId: id, level: .debug)
+    }
+    
+    private func formatMessage(
+        _ message: String,
+        metadata: [String: String]
+    ) -> String {
+        guard !metadata.isEmpty else { return message }
+        
+        let metaString = metadata
+            .map { "\\($0.key)=\\($0.value)" }
+            .joined(separator: " ")
+        
+        return "\\(message) [\\(metaString)]"
+    }
+}
+
+// MARK: - Types
+
+enum LogVerbosity: Int {
+    case debug = 0
+    case info = 1
+    case warning = 2
+    case error = 3
+}
+
+enum LogLevel: Int {
+    case debug = 0
+    case info = 1
+    case warning = 2
+    case error = 3
+    
+    var osLogType: OSLogType {
+        switch self {
+        case .debug: return .debug
+        case .info: return .info
+        case .warning: return .default
+        case .error: return .error
+        }
+    }
+}
+
+enum ProcessingStage: String {
+    case loaded = "Loaded"
+    case preprocessed = "Preprocessed"
+    case analyzed = "Analyzed"
+    case clustered = "Clustered"
+    case selected = "Selected"
+    case generated = "Generated"
+    case failed = "Failed"
+}`} 
         filename="PLLogger.swift"
         language="swift"
       />
@@ -410,8 +705,122 @@ enum PLErrorCode: String, Error {
         Complete reference of all HyperPersonalization error codes with troubleshooting guidance.
       </DocParagraph>
 
+      <DocParagraph>
+        Here's what the code below does, step by step:
+      </DocParagraph>
+      <DocList items={[
+        '1. Define error codes: Create enum with all possible error codes organized by category',
+        '2. Permission errors (1xx): Errors related to photo access permissions',
+        '3. Image processing errors (2xx): Errors when loading or processing images',
+        '4. Face detection errors (3xx): Errors when detecting or analyzing faces',
+        '5. Model errors (4xx): Errors when loading or running AI models',
+        '6. API errors (5xx): Errors when calling external APIs',
+        '7. Generation errors (6xx): Errors during image generation',
+        '8. Cache errors (7xx): Errors when reading/writing cache',
+        '9. User messages: Each error has a friendly message to show users',
+        '10. Troubleshooting steps: Each error includes steps to fix the problem',
+      ]} />
+
+      <DocHeading level={3}>Part 1: Error Code Definitions</DocHeading>
       <CodeBlock 
-        code={errorCodeReferenceCode} 
+        code={`import HyperPersonalization
+
+/// HyperPersonalization Error Codes
+enum PLErrorCode: String, Error {
+    // Permission Errors (1xx)
+    case permissionDenied = "ERR_PERMISSION_DENIED"
+    case permissionRestricted = "ERR_PERMISSION_RESTRICTED"
+    case permissionNotDetermined = "ERR_PERMISSION_NOT_DETERMINED"
+    
+    // Image Processing Errors (2xx)
+    case imageLoadFailed = "ERR_IMAGE_LOAD_FAILED"
+    case imageEncodingFailed = "ERR_IMAGE_ENCODING_FAILED"
+    case imageTooSmall = "ERR_IMAGE_TOO_SMALL"
+    case imageCorrupted = "ERR_IMAGE_CORRUPTED"
+    
+    // Face Detection Errors (3xx)
+    case faceNotFound = "ERR_FACE_NOT_FOUND"
+    case multipleFacesFound = "ERR_MULTIPLE_FACES_FOUND"
+    case faceTooSmall = "ERR_FACE_TOO_SMALL"
+    case faceObscured = "ERR_FACE_OBSCURED"
+    
+    // Model Errors (4xx)
+    case modelLoadFailed = "ERR_MODEL_LOAD_FAILED"
+    case modelInferenceFailed = "ERR_MODEL_INFERENCE_FAILED"
+    case modelIncompatible = "ERR_MODEL_INCOMPATIBLE"
+    case modelInputInvalid = "ERR_MODEL_INPUT_INVALID"
+    
+    // API Errors (5xx)
+    case apiTimeout = "ERR_API_TIMEOUT"
+    case apiRateLimited = "ERR_API_RATE_LIMITED"
+    case apiServerError = "ERR_API_SERVER_ERROR"
+    case apiAuthFailed = "ERR_API_AUTH_FAILED"
+    case apiInvalidResponse = "ERR_API_INVALID_RESPONSE"
+    
+    // Generation Errors (6xx)
+    case generationFailed = "ERR_GENERATION_FAILED"
+    case generationLowQuality = "ERR_GENERATION_LOW_QUALITY"
+    case generationTimeout = "ERR_GENERATION_TIMEOUT"
+    
+    // Cache Errors (7xx)
+    case cacheReadFailed = "ERR_CACHE_READ_FAILED"
+    case cacheWriteFailed = "ERR_CACHE_WRITE_FAILED"
+    case cacheCorrupted = "ERR_CACHE_CORRUPTED"
+}`} 
+        filename="PLErrorCode.swift"
+        language="swift"
+      />
+
+      <DocHeading level={3}>Part 2: User Messages and Troubleshooting</DocHeading>
+      <CodeBlock 
+        code={`    /// User-facing error message
+    var userMessage: String {
+        switch self {
+        case .permissionDenied:
+            return "Photo access denied. Please enable in Settings."
+        case .faceNotFound:
+            return "No face detected in image. Please try another photo."
+        case .apiTimeout:
+            return "Request timed out. Please check your connection."
+        case .generationFailed:
+            return "Unable to generate image. Please try again."
+        default:
+            return "An error occurred. Please try again."
+        }
+    }
+    
+    /// Troubleshooting steps
+    var troubleshootingSteps: [String] {
+        switch self {
+        case .permissionDenied:
+            return [
+                "Open Settings app",
+                "Navigate to Privacy > Photos",
+                "Find your app and enable access"
+            ]
+        case .faceNotFound:
+            return [
+                "Ensure face is clearly visible",
+                "Use a well-lit photo",
+                "Avoid photos with sunglasses or masks"
+            ]
+        case .apiTimeout:
+            return [
+                "Check internet connection",
+                "Try again in a few moments",
+                "Contact support if issue persists"
+            ]
+        case .modelLoadFailed:
+            return [
+                "Restart the app",
+                "Clear app cache",
+                "Reinstall if issue persists"
+            ]
+        default:
+            return ["Try again", "Contact support if issue persists"]
+        }
+    }
+}`} 
         filename="PLErrorCode.swift"
         language="swift"
       />
