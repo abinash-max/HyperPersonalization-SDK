@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Search, Book, Shield, Brain, Home, Users, Zap, Database, TestTube, Layout, Smartphone, Camera, Palette, Box, Cpu, Server, Lock } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, Book, Shield, Brain, Home, Users, Zap, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -32,7 +32,7 @@ const phases: NavItem[] = [
   },
   {
     id: 'phase-1',
-    label: 'Phase 1: Permissions',
+    label: 'Permissions',
     icon: <Shield className="w-4 h-4" />,
     children: [
       { id: 'gallery-access', label: 'Gallery Access Strategy' },
@@ -40,92 +40,29 @@ const phases: NavItem[] = [
   },
   {
     id: 'phase-2',
-    label: 'Phase 2: CoreML Implementation',
+    label: 'CoreML Implementation',
     icon: <Brain className="w-4 h-4" />,
     children: [
       { id: 'model-overview', label: 'CoreML Implementation' },
     ],
   },
   {
-    id: 'phase-3',
-    label: 'Phase 3: Room Analysis',
+    id: 'image-analysis',
+    label: 'Image Analysis',
     icon: <Home className="w-4 h-4" />,
     children: [
-      { id: 'room-classification', label: 'Room Classification' },
-      { id: 'asset-storage', label: 'Asset Storage' },
-      { id: 'low-confidence', label: 'Low Confidence Handling' },
-    ],
-  },
-  {
-    id: 'phase-4',
-    label: 'Phase 4: Human Analysis',
-    icon: <Users className="w-4 h-4" />,
-    children: [
-      { id: 'fashion-analysis', label: 'Fashion Analysis Flow' },
-      { id: 'vision-framework', label: 'Vision Framework' },
-      { id: 'face-pipeline', label: 'Face Pipeline' },
-      { id: 'embeddings-api', label: 'Embeddings & Clustering' },
-      { id: 'best-face', label: 'Best Face Selection' },
+      { id: 'room-selection', label: 'Room Selection' },
+      { id: 'human-selection', label: 'Human Selection' },
     ],
   },
   {
     id: 'phase-5',
-    label: 'Phase 5: Vendor Integration',
+    label: 'Image Generation',
     icon: <Zap className="w-4 h-4" />,
     children: [
       { id: 'product-mapping', label: 'Product Mapping' },
       { id: 'fashion-generation', label: 'Fashion Generation' },
       { id: 'furniture-generation', label: 'Furniture Generation' },
-    ],
-  },
-  {
-    id: 'phase-6',
-    label: 'Phase 6: Performance',
-    icon: <Cpu className="w-4 h-4" />,
-    children: [
-      { id: 'device-compatibility', label: 'Device Compatibility' },
-      { id: 'memory-management', label: 'Memory Management' },
-      { id: 'concurrency', label: 'Concurrency' },
-      { id: 'battery-impact', label: 'Battery Impact' },
-    ],
-  },
-  {
-    id: 'phase-7',
-    label: 'Phase 7: Privacy',
-    icon: <Lock className="w-4 h-4" />,
-    children: [
-      { id: 'privacy-manifest', label: 'Privacy Manifest' },
-      { id: 'caching', label: 'Caching Mechanism' },
-      { id: 'normalization', label: 'Image Normalization' },
-    ],
-  },
-  {
-    id: 'phase-8',
-    label: 'Phase 8: Advanced',
-    icon: <Server className="w-4 h-4" />,
-    children: [
-      { id: 'custom-models', label: 'Custom Model Injection' },
-      { id: 'webhooks', label: 'Webhooks & Callbacks' },
-      { id: 'offline-mode', label: 'Offline Mode' },
-    ],
-  },
-  {
-    id: 'phase-9',
-    label: 'Phase 9: Testing',
-    icon: <TestTube className="w-4 h-4" />,
-    children: [
-      { id: 'test-mode', label: 'Mocking & Test Mode' },
-      { id: 'logging', label: 'Logging & Tracing' },
-      { id: 'error-codes', label: 'Error Code Reference' },
-    ],
-  },
-  {
-    id: 'phase-10',
-    label: 'Phase 10: UI & Lifecycle',
-    icon: <Layout className="w-4 h-4" />,
-    children: [
-      { id: 'localization', label: 'Localization' },
-      { id: 'cache-cleaning', label: 'Cache Cleaning' },
     ],
   },
 ];
@@ -143,32 +80,11 @@ const sectionToRoute: Record<string, string> = {
   'manual-service': '/usage',
   'gallery-access': '/permissions',
   'model-overview': '/model-architecture',
-  'room-classification': '/room-analysis',
-  'asset-storage': '/room-analysis',
-  'low-confidence': '/room-analysis',
-  'fashion-analysis': '/human-analysis',
-  'vision-framework': '/human-analysis',
-  'face-pipeline': '/human-analysis',
-  'embeddings-api': '/human-analysis',
-  'best-face': '/human-analysis',
+  'room-selection': '/image-analysis',
+  'human-selection': '/image-analysis',
   'product-mapping': '/vendor-integration',
   'fashion-generation': '/vendor-integration',
   'furniture-generation': '/vendor-integration',
-  'device-compatibility': '/performance',
-  'memory-management': '/performance',
-  'concurrency': '/performance',
-  'battery-impact': '/performance',
-  'privacy-manifest': '/privacy',
-  'caching': '/privacy',
-  'normalization': '/privacy',
-  'custom-models': '/advanced-integration',
-  'webhooks': '/advanced-integration',
-  'offline-mode': '/advanced-integration',
-  'test-mode': '/testing-support',
-  'logging': '/testing-support',
-  'error-codes': '/testing-support',
-  'localization': '/ui-lifecycle',
-  'cache-cleaning': '/ui-lifecycle',
 };
 
 export function Sidebar({ activeSection }: SidebarProps) {

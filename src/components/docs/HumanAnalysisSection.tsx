@@ -419,7 +419,7 @@ enum ClusteringError: Error {
 
   return (
     <DocSection id="human-analysis">
-      <DocHeading level={1}>Phase 4: Human Analysis & Face Pipeline</DocHeading>
+      <DocHeading level={1}>Human Analysis & Face Pipeline</DocHeading>
       <DocParagraph>
         The Human Analysis phase processes photos containing people through a sophisticated 
         pipeline: face detection, demographic classification, embedding extraction, and 

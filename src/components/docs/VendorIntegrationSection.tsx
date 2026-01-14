@@ -342,9 +342,9 @@ enum FurnitureCategory: String, Codable {
 
   return (
     <DocSection id="vendor-integration">
-      <DocHeading level={1}>Phase 5: Vendor Integration & Generation</DocHeading>
+      <DocHeading level={1}>Image Generation</DocHeading>
       <DocParagraph>
-        This phase covers integrating e-commerce vendor products with HyperPersonalization for 
+        This section covers integrating e-commerce vendor products with HyperPersonalization for 
         fashion try-on and furniture visualization generation.
       </DocParagraph>
 
@@ -522,15 +522,41 @@ enum ImageError: Error {
         ]}
       />
 
-      <DocHeading level={2} id="fashion-generation">4. Generate Fashion Try-On</DocHeading>
+      <DocHeading level={2} id="fashion-generation">Fashion Generation (Virtual Try-On)</DocHeading>
       <DocParagraph>
-        Visualize a garment on a user.
+        Visualize how a garment looks on a real user by generating a <strong>virtual try-on image</strong> that combines the user photo and the garment image.
+      </DocParagraph>
+      <DocParagraph>
+        This feature is typically used <strong>after personalization and human analysis</strong>, when you already have a high-quality user image and a product image URL.
       </DocParagraph>
 
-      <DocHeading level={3}>Code Breakdown</DocHeading>
-
+      <DocHeading level={3}>What this feature does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>1. Call the Generation Function</strong>
+        <strong>Given a user photo, a garment product image URL, and a product type, the SDK generates a combined image showing the user wearing the selected garment — or fails with a clear error.</strong>
+      </DocParagraph>
+
+      <DocHeading level={3}>When to use Fashion Generation</DocHeading>
+      <DocParagraph>
+        Use this API when:
+      </DocParagraph>
+      <DocList items={[
+        'You already have a best-quality user image (face/body)',
+        'You want to visualize a specific garment on that user',
+        'You want to display a realistic try-on result inside your app',
+      ]} />
+      <DocParagraph>
+        Typical use cases:
+      </DocParagraph>
+      <DocList items={[
+        'Virtual try-on experiences',
+        'Product preview before purchase',
+        'Personalized shopping journeys',
+      ]} />
+
+      <DocHeading level={3}>Core API</DocHeading>
+      <DocHeading level={4}>generateFashion(...)</DocHeading>
+      <DocParagraph>
+        This is the primary function used to generate a fashion try-on image.
       </DocParagraph>
       <CodeBlock
         language="swift"
@@ -544,53 +570,84 @@ enum ImageError: Error {
     }
 )`}
       />
+
+      <DocHeading level={3}>Parameters explained</DocHeading>
+      <DocHeading level={4}>thumbnailImg</DocHeading>
       <DocList items={[
-        'thumbnailImg: userPhotoImage — The user\'s photo (UIImage) showing their face/body',
-        'garmentImageUrl: "https://example.com/shirt.jpg" — URL of the clothing product image to try on',
-        'productType: "upper_body" — Type of clothing: "upper_body", "lower_body", or "dresses"',
-        'completion: { result in ... } — Callback that receives the result',
+        'Type: UIImage',
+        'Description: The user\'s photo showing their face or body. This image is typically selected from earlier personalization or human analysis phases.',
       ]} />
 
+      <DocHeading level={4}>garmentImageUrl</DocHeading>
+      <DocList items={[
+        'Type: String',
+        'Description: A publicly accessible URL pointing to the garment product image that should be tried on.',
+      ]} />
+
+      <DocHeading level={4}>productType</DocHeading>
+      <DocList items={[
+        'Type: String',
+        'Description: Specifies the category of clothing being applied.',
+      ]} />
       <DocParagraph>
-        <strong>2. Handle Success Result</strong>
+        Supported values:
       </DocParagraph>
+      <DocList items={[
+        '"upper_body" — shirts, t-shirts, jackets, tops',
+        '"lower_body" — pants, jeans, skirts, shorts',
+        '"dresses" — dresses, gowns, one-piece garments',
+      ]} />
+
+      <DocHeading level={4}>completion</DocHeading>
+      <DocList items={[
+        'Type: (Result<ImageResult, Error>) -> Void',
+        'Description: Callback invoked once the generation process finishes, either successfully or with an error.',
+      ]} />
+
+      <DocHeading level={3}>Result handling</DocHeading>
+      <DocHeading level={4}>Success case</DocHeading>
       <CodeBlock
         language="swift"
         filename="FashionGeneration.swift"
         code={`case .success(let imageResult):
     if let generatedImage = imageResult.resultImage {
-        // Display the generated image
         imageView.image = generatedImage
     }`}
       />
+      <DocParagraph>
+        <strong>What happens:</strong>
+      </DocParagraph>
       <DocList items={[
-        'If generation succeeds, imageResult contains the result',
-        'imageResult.resultImage is the combined image (user + garment)',
-        'Assign it to imageView.image to display',
+        'The generation succeeds',
+        'imageResult contains the output',
+        'imageResult.resultImage is the final combined image',
+        'Assign it directly to an UIImageView for display',
       ]} />
 
-      <DocParagraph>
-        <strong>3. Handle Failure Result</strong>
-      </DocParagraph>
+      <DocHeading level={4}>Failure case</DocHeading>
       <CodeBlock
         language="swift"
         filename="FashionGeneration.swift"
         code={`case .failure(let error):
     print("Generation failed: \\(error)")`}
       />
+      <DocParagraph>
+        <strong>What happens:</strong>
+      </DocParagraph>
       <DocList items={[
-        'If generation fails, handle the error',
-        'Print or show an error message to the user',
+        'The generation process fails',
+        'An error is returned',
+        'You should display an appropriate error message or retry option in your UI',
       ]} />
 
       <DocHeading level={3}>Step-by-step flow</DocHeading>
       <DocList items={[
-        'Prepare inputs: User photo (userPhotoImage), Garment product image URL ("https://example.com/shirt.jpg"), Product type ("upper_body")',
-        'Call generateFashion(): SDK downloads the garment image from the URL, Analyzes the user photo (detects face/body), Places the garment on the user, Generates a combined image',
-        'Receive result: Success: Get the generated image and display it, Failure: Handle the error',
+        'Prepare inputs: A user photo (UIImage), A garment product image URL, A valid product type',
+        'Call generateFashion(): The SDK downloads the garment image, Analyzes the user photo (detects face/body), Places the garment on the user, Generates a combined image',
+        'Receive result: Success: Access and display the generated image, Failure: Handle and surface the error',
       ]} />
 
-      <DocHeading level={3}>Complete example with context</DocHeading>
+      <DocHeading level={3}>Complete example (recommended integration pattern)</DocHeading>
       <CodeBlock
         language="swift"
         filename="FashionGeneration.swift"
@@ -609,73 +666,101 @@ sdk.generateFashion(
         switch result {
         case .success(let imageResult):
             if let generatedImage = imageResult.resultImage {
-                // Success! Show the user wearing the shirt
                 imageView.image = generatedImage
                 print("✅ Fashion try-on generated!")
             } else {
                 print("⚠️ No image returned")
             }
-            
+
         case .failure(let error):
-            // Handle errors
             print("❌ Generation failed: \\(error)")
-            // Show error message to user
             showError("Could not generate try-on. Please try again.")
         }
     }
 )`}
       />
 
-      <DocHeading level={3}>Product types</DocHeading>
+      <DocHeading level={3}>Product type reference</DocHeading>
+      <DocTable
+        headers={['Product Type', 'Description']}
+        rows={[
+          ['upper_body', 'Shirts, t-shirts, jackets, tops'],
+          ['lower_body', 'Pants, jeans, skirts, shorts'],
+          ['dresses', 'Dresses, gowns, one-piece garments'],
+        ]}
+      />
+
+      <DocHeading level={3}>What the SDK handles automatically</DocHeading>
       <DocList items={[
-        '"upper_body" — Shirts, t-shirts, jackets, tops',
-        '"lower_body" — Pants, jeans, skirts, shorts',
-        '"dresses" — Dresses, gowns, one-piece garments',
+        'Garment image download',
+        'User photo analysis',
+        'Garment placement and alignment',
+        'Image generation and blending',
+      ]} />
+      <DocParagraph>
+        You only need to provide:
+      </DocParagraph>
+      <DocList items={[
+        'User image',
+        'Garment image URL',
+        'Product type',
       ]} />
 
-      <DocHeading level={3}>What this does</DocHeading>
+      <DocHeading level={3}>Typical placement in the SDK pipeline</DocHeading>
+      <DocParagraph>
+        This feature is usually used <strong>after</strong>:
+      </DocParagraph>
       <DocList items={[
-        'Takes a user photo (face/body)',
-        'Takes a garment product image URL',
-        'Combines them to show the garment on the user',
-        'Returns a new image showing the result',
-      ]} />
-
-      <DocHeading level={3}>Use cases</DocHeading>
-      <DocList items={[
-        'Virtual try-on: Show how a shirt looks on the user',
-        'Product visualization: Help users see products on themselves',
-        'Shopping experience: Let users try on items before buying',
+        'Phase 4: Human Analysis (You already have the best user images)',
+        'Phase 5: Vendor Integration (You already have product image URLs)',
       ]} />
 
       <DocHeading level={3}>Summary</DocHeading>
       <DocList items={[
-        'Provide user photo, garment product URL, and product type',
-        'SDK generates a combined image',
-        'Display the result or handle errors',
+        'Provide a user photo, garment image URL, and product type',
+        'Call generateFashion()',
+        'Receive a generated try-on image or an error',
+        'Display the result in your UI',
       ]} />
-
       <DocParagraph>
-        This is typically used after:
+        This API enables <strong>real-time, personalized fashion visualization</strong> with minimal integration effort.
+      </DocParagraph>
+
+      <DocHeading level={2} id="furniture-generation">Furniture Generation (Room Visualization)</DocHeading>
+      <DocParagraph>
+        Place a furniture item into a real room image to generate a <strong>virtual room visualization</strong> that shows how the product looks in the user's space.
+      </DocParagraph>
+      <DocParagraph>
+        This feature is typically used <strong>after room analysis</strong>, when you already have a classified room image and a furniture product image URL.
+      </DocParagraph>
+
+      <DocHeading level={3}>What this feature does (in one sentence)</DocHeading>
+      <DocParagraph>
+        <strong>Given a room photo, a room type, and a furniture product image URL, the SDK generates a combined image showing the furniture placed inside the room — or fails with a clear error.</strong>
+      </DocParagraph>
+
+      <DocHeading level={3}>When to use Furniture Generation</DocHeading>
+      <DocParagraph>
+        Use this API when:
       </DocParagraph>
       <DocList items={[
-        'Phase 4: You\'ve analyzed faces and have best face images (male/female/kids)',
-        'Phase 5: You\'ve integrated vendor products and have product URLs',
+        'You already have a room image (living room, bedroom, dining room)',
+        'You want to visualize a specific furniture item in that room',
+        'You want to display a realistic in-room placement preview inside your app',
+      ]} />
+      <DocParagraph>
+        Typical use cases:
+      </DocParagraph>
+      <DocList items={[
+        'Virtual furniture placement',
+        'Product visualization before purchase',
+        'Personalized home shopping experiences',
       ]} />
 
+      <DocHeading level={3}>Core API</DocHeading>
+      <DocHeading level={4}>generateFurniture(...)</DocHeading>
       <DocParagraph>
-        The SDK handles the image processing and garment placement automatically.
-      </DocParagraph>
-
-      <DocHeading level={2} id="furniture-generation">3. Generate Furniture Visualization</DocHeading>
-      <DocParagraph>
-        Place a furniture item into a room image.
-      </DocParagraph>
-
-      <DocHeading level={3}>Code Breakdown</DocHeading>
-
-      <DocParagraph>
-        <strong>1. Call the Generation Function</strong>
+        This is the primary function used to generate a furniture visualization inside a room image.
       </DocParagraph>
       <CodeBlock
         language="swift"
@@ -689,53 +774,84 @@ sdk.generateFashion(
     }
 )`}
       />
+
+      <DocHeading level={3}>Parameters explained</DocHeading>
+      <DocHeading level={4}>thumbnailImg</DocHeading>
       <DocList items={[
-        'thumbnailImg: userRoomImage — The room photo (UIImage) where furniture will be placed',
-        'roomType: "living_room" — Room type: "bedroom", "living_room", or "dining_room"',
-        'objectUrl: "https://example.com/sofa.jpg" — URL of the furniture product image to place',
-        'completion: { result in ... } — Callback that receives the result',
+        'Type: UIImage',
+        'Description: The room photo where the furniture item will be placed. This image typically comes from earlier room analysis or classification.',
       ]} />
 
+      <DocHeading level={4}>roomType</DocHeading>
+      <DocList items={[
+        'Type: String',
+        'Description: Specifies the type of room shown in the image.',
+      ]} />
       <DocParagraph>
-        <strong>2. Handle Success Result</strong>
+        Supported values:
       </DocParagraph>
+      <DocList items={[
+        '"bedroom"',
+        '"living_room"',
+        '"dining_room"',
+      ]} />
+
+      <DocHeading level={4}>objectUrl</DocHeading>
+      <DocList items={[
+        'Type: String',
+        'Description: A publicly accessible URL pointing to the furniture product image that should be placed into the room.',
+      ]} />
+
+      <DocHeading level={4}>completion</DocHeading>
+      <DocList items={[
+        'Type: (Result<ImageResult, Error>) -> Void',
+        'Description: Callback invoked once the generation process finishes, either successfully or with an error.',
+      ]} />
+
+      <DocHeading level={3}>Result handling</DocHeading>
+      <DocHeading level={4}>Success case</DocHeading>
       <CodeBlock
         language="swift"
         filename="FurnitureGeneration.swift"
         code={`case .success(let imageResult):
     if let generatedImage = imageResult.resultImage {
-        // Display the generated image
         imageView.image = generatedImage
     }`}
       />
+      <DocParagraph>
+        <strong>What happens:</strong>
+      </DocParagraph>
       <DocList items={[
-        'If generation succeeds, imageResult contains the result',
-        'imageResult.resultImage is the combined image (room + furniture)',
-        'Assign it to imageView.image to display',
+        'The generation succeeds',
+        'imageResult contains the output',
+        'imageResult.resultImage is the final combined image (room + furniture)',
+        'Assign it directly to an UIImageView for display',
       ]} />
 
-      <DocParagraph>
-        <strong>3. Handle Failure Result</strong>
-      </DocParagraph>
+      <DocHeading level={4}>Failure case</DocHeading>
       <CodeBlock
         language="swift"
         filename="FurnitureGeneration.swift"
         code={`case .failure(let error):
     print("Generation failed: \\(error)")`}
       />
+      <DocParagraph>
+        <strong>What happens:</strong>
+      </DocParagraph>
       <DocList items={[
-        'If generation fails, handle the error',
-        'Print or show an error message to the user',
+        'The generation process fails',
+        'An error is returned',
+        'You should display an appropriate error message or retry option in your UI',
       ]} />
 
       <DocHeading level={3}>Step-by-step flow</DocHeading>
       <DocList items={[
-        'Prepare inputs: Room image (userRoomImage), Room type ("living_room"), Furniture product image URL ("https://example.com/sofa.jpg")',
-        'Call generateFurniture(): SDK downloads the furniture image from the URL, Analyzes the room image, Places the furniture in the room, Generates a combined image',
-        'Receive result: Success: Get the generated image and display it, Failure: Handle the error',
+        'Prepare inputs: A room image (UIImage), A room type ("bedroom", "living_room", or "dining_room"), A furniture product image URL',
+        'Call generateFurniture(): The SDK downloads the furniture image, Analyzes the room image, Places the furniture in the room, Generates a combined image',
+        'Receive result: Success: Access and display the generated image, Failure: Handle and surface the error',
       ]} />
 
-      <DocHeading level={3}>Complete example with context</DocHeading>
+      <DocHeading level={3}>Complete example (recommended integration pattern)</DocHeading>
       <CodeBlock
         language="swift"
         filename="FurnitureGeneration.swift"
@@ -754,55 +870,54 @@ sdk.generateFurniture(
         switch result {
         case .success(let imageResult):
             if let generatedImage = imageResult.resultImage {
-                // Success! Show the user their room with the sofa placed in it
                 imageView.image = generatedImage
                 print("✅ Furniture visualization generated!")
             } else {
                 print("⚠️ No image returned")
             }
-            
+
         case .failure(let error):
-            // Handle errors
             print("❌ Generation failed: \\(error)")
-            // Show error message to user
             showError("Could not generate visualization. Please try again.")
         }
     }
 )`}
       />
 
-      <DocHeading level={3}>What this does</DocHeading>
+      <DocHeading level={3}>What the SDK handles automatically</DocHeading>
       <DocList items={[
-        'Takes a room photo (e.g., living room)',
-        'Takes a furniture product image URL (e.g., sofa)',
-        'Combines them to show the furniture placed in the room',
-        'Returns a new image showing the result',
+        'Furniture image download',
+        'Room image analysis',
+        'Furniture placement and alignment',
+        'Image generation and blending',
+      ]} />
+      <DocParagraph>
+        You only need to provide:
+      </DocParagraph>
+      <DocList items={[
+        'Room image',
+        'Room type',
+        'Furniture product image URL',
       ]} />
 
-      <DocHeading level={3}>Use cases</DocHeading>
+      <DocHeading level={3}>Typical placement in the SDK pipeline</DocHeading>
+      <DocParagraph>
+        This feature is usually used <strong>after</strong>:
+      </DocParagraph>
       <DocList items={[
-        'Virtual furniture placement: Show how a sofa looks in the user\'s living room',
-        'Product visualization: Help users visualize products in their space',
-        'Shopping experience: Let users see products in their rooms before buying',
+        'Phase 3: Room Analysis (You already have classified room images)',
+        'Phase 5: Vendor Integration (You already have product image URLs)',
       ]} />
 
       <DocHeading level={3}>Summary</DocHeading>
       <DocList items={[
-        'Provide room image, room type, and furniture product URL',
-        'SDK generates a combined image',
-        'Display the result or handle errors',
+        'Provide a room image, room type, and furniture product URL',
+        'Call generateFurniture()',
+        'Receive a generated visualization image or an error',
+        'Display the result in your UI',
       ]} />
-
       <DocParagraph>
-        This is typically used after:
-      </DocParagraph>
-      <DocList items={[
-        'Phase 3: You\'ve classified rooms and have room images',
-        'Phase 5: You\'ve integrated vendor products and have product URLs',
-      ]} />
-
-      <DocParagraph>
-        The SDK handles the image processing and placement automatically.
+        This API enables <strong>real-time, personalized furniture visualization</strong> with minimal integration effort.
       </DocParagraph>
     </DocSection>
   );

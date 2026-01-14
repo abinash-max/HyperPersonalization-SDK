@@ -5,7 +5,6 @@ export function RoomAnalysisSection() {
   return (
     <>
       <DocSection id="room-classification">
-        <span className="phase-badge mb-4">Phase 3</span>
         <DocHeading level={1}>Room Classification Logic</DocHeading>
         
         <DocParagraph>

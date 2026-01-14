@@ -7,10 +7,8 @@ export function ModelArchitectureSection() {
       <DocSection id="model-overview">
         <span className="phase-badge mb-4">Phase 2</span>
         <DocHeading level={1}>CoreML Implementation</DocHeading>
-        
-        <DocHeading level={2}>Code breakdown</DocHeading>
 
-        <DocHeading level={3}>1. Manual Personalization Service Call</DocHeading>
+        <DocHeading level={2}>1. Manual Personalization Service Call</DocHeading>
         <CodeBlock
           language="swift"
           filename="ManualService.swift"
@@ -30,9 +28,6 @@ Task {
 }`}
         />
 
-        <DocParagraph>
-          Code breakdown:
-        </DocParagraph>
         <DocList items={[
           'assets: Array of PHAsset objects you select (not the entire gallery)',
           'Task: Runs the async work',
@@ -42,7 +37,7 @@ Task {
           'completion: Callback with the final result',
         ]} />
 
-        <DocHeading level={3}>2. SDKResult Structure</DocHeading>
+        <DocHeading level={2}>2. SDKResult Structure</DocHeading>
         <CodeBlock
           language="swift"
           filename="SDKResult.swift"
@@ -53,16 +48,13 @@ Task {
 }`}
         />
 
-        <DocParagraph>
-          Code breakdown:
-        </DocParagraph>
         <DocList items={[
           'success: Whether the operation succeeded',
           'message: Status or error message',
           'arrPersonalizeAsset: Array of discovered assets with their categories',
         ]} />
 
-        <DocHeading level={3}>3. PersonalizedAsset Structure</DocHeading>
+        <DocHeading level={2}>3. PersonalizedAsset Structure</DocHeading>
         <CodeBlock
           language="swift"
           filename="PersonalizedAsset.swift"
@@ -72,15 +64,12 @@ Task {
 }`}
         />
 
-        <DocParagraph>
-          Code breakdown:
-        </DocParagraph>
         <DocList items={[
           'phAsset: The original photo asset (can be nil)',
           'validCategory: The category assigned (e.g., bedroom, male, female)',
         ]} />
 
-        <DocHeading level={3}>4. TaggerAPIResultCategory Enum</DocHeading>
+        <DocHeading level={2}>4. TaggerAPIResultCategory Enum</DocHeading>
         <CodeBlock
           language="swift"
           filename="TaggerAPIResultCategory.swift"
@@ -105,7 +94,7 @@ Task {
           'Fallback: unknown',
         ]} />
 
-        <DocHeading level={3}>5. Product Categories Array</DocHeading>
+        <DocHeading level={2}>5. Product Categories Array</DocHeading>
         <CodeBlock
           language="swift"
           filename="TaggerAPIResultCategory.swift"
@@ -123,15 +112,12 @@ Task {
 }`}
         />
 
-        <DocParagraph>
-          Code breakdown:
-        </DocParagraph>
         <DocList items={[
           'Maps each room category to product keywords for vendor searches',
           'Person categories return an empty array (not used for product matching)',
         ]} />
 
-        <DocHeading level={3}>Summary</DocHeading>
+        <DocHeading level={2}>Summary</DocHeading>
         <DocList items={[
           'Call the manual service with your selected PHAsset array',
           'Receive a SDKResult with success status, message, and discovered assets',
@@ -140,7 +126,7 @@ Task {
           'Room categories map to product keywords for vendor searches',
         ]} />
 
-        <DocHeading level={3}>Example usage</DocHeading>
+        <DocHeading level={2}>Example usage</DocHeading>
         <CodeBlock
           language="swift"
           filename="ExampleUsage.swift"

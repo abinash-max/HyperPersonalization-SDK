@@ -1,0 +1,327 @@
+import { CodeBlock } from '@/components/ui/CodeBlock';
+import { DocSection, DocHeading, DocParagraph, DocCallout, DocList } from './DocSection';
+
+export function ImageAnalysisSection() {
+  return (
+    <>
+      <DocSection id="image-analysis">
+        <span className="phase-badge mb-4">Image Analysis</span>
+        <DocHeading level={1}>Image Analysis</DocHeading>
+        <DocParagraph>
+          Image Analysis combines room classification and human analysis to process photos and extract 
+          meaningful insights for personalization. This section covers how the SDK selects the best 
+          room images and best human images for personalization.
+        </DocParagraph>
+      </DocSection>
+
+      <DocSection id="room-selection">
+        <DocHeading level={2}>Room Selection</DocHeading>
+        <DocParagraph>
+          This document explains <strong>how the SDK selects the best room image</strong> for home / room-based personalization, 
+          based strictly on the behavior described in the usage documentation.
+        </DocParagraph>
+
+        <DocHeading level={3}>Overview</DocHeading>
+        <DocParagraph>
+          When the SDK is used for <strong>home-related personalization</strong> (e.g., room placement, furniture visualization, 
+          home goods try-on), it automatically identifies, evaluates, and selects the <strong>best-quality room image</strong> 
+          from the user's photo library or a developer-provided photo set.
+        </DocParagraph>
+        <DocParagraph>
+          The selection is deterministic, quality-driven, and fails explicitly if requirements are not met.
+        </DocParagraph>
+
+        <DocHeading level={3}>Step-by-Step Selection Pipeline</DocHeading>
+
+        <DocHeading level={4}>1. Personalization Type Determines the Rules</DocHeading>
+        <DocParagraph>
+          When the SDK is initialized with:
+        </DocParagraph>
+        <CodeBlock
+          language="swift"
+          filename="SDKOptions.swift"
+          code={`personalizationType: .homegoods`}
+        />
+        <DocParagraph>
+          the SDK switches to <strong>room and indoor-scene–specific selection logic</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          This configuration:
+        </DocParagraph>
+        <DocList items={[
+          'Enables indoor / room classifiers',
+          'Disables face or person-centric rules',
+          'Activates scene quality and lighting checks',
+          'Defines room categories as required outputs (e.g., bedroom, living room)',
+        ]} />
+
+        <DocHeading level={4}>2. Photo Ingestion</DocHeading>
+        <DocParagraph>
+          Photos are collected in one of two ways:
+        </DocParagraph>
+        <DocList items={[
+          'Auto mode — Scans all photos accessible via iOS permissions. Full access scans entire library. Limited access scans only user-approved photos.',
+          'Manual mode — Scans only the PHAsset[] explicitly passed by the app. Common for album-based or user-selected room photos.',
+        ]} />
+        <DocParagraph>
+          Only <strong>accessible and readable assets</strong> enter the pipeline.
+        </DocParagraph>
+
+        <DocHeading level={4}>3. Analyzing Stage — Room Suitability Filtering</DocHeading>
+        <DocParagraph>
+          During the <code>analyzing</code> phase, each image is evaluated for <strong>room suitability</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          Images are filtered based on:
+        </DocParagraph>
+        <DocList items={[
+          'Indoor scene characteristics (walls, floors, furniture context)',
+          'Image clarity and sharpness',
+          'Adequate lighting (not too dark or overexposed)',
+          'Sufficient resolution for downstream rendering',
+        ]} />
+        <DocParagraph>
+          Images that do <strong>not resemble a usable room</strong> are discarded at this stage.
+        </DocParagraph>
+
+        <DocHeading level={4}>4. Clustering Stage — Removing Near-Duplicates</DocHeading>
+        <DocParagraph>
+          In the <code>clustering</code> phase:
+        </DocParagraph>
+        <DocList items={[
+          'Visually similar room images are grouped together',
+          'Burst shots or near-identical angles are clustered',
+          'Only the best representative image per cluster is retained',
+        ]} />
+        <DocParagraph>
+          This prevents redundant or repetitive room images from competing during selection.
+        </DocParagraph>
+
+        <DocHeading level={4}>5. Selecting Best Photo — Quality-Based Ranking</DocHeading>
+        <DocParagraph>
+          This is the <strong>core decision stage</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          For each detected room category:
+        </DocParagraph>
+        <DocList items={[
+          'Remaining images are scored using internal quality heuristics: Sharpness, Balanced lighting, Clear room framing, Minimal obstruction, Suitability for product placement',
+          'Images are ranked by overall score',
+          'The highest-scoring image is selected as the best candidate',
+        ]} />
+        <DocParagraph>
+          Only one best image is selected per room category.
+        </DocParagraph>
+
+        <DocHeading level={4}>6. Tagging — Final Category Assignment</DocHeading>
+        <DocParagraph>
+          After selection:
+        </DocParagraph>
+        <DocList items={[
+          'Each chosen image is tagged with a validCategory (Example: bedroom, livingRoom)',
+          'The image is returned as a PersonalizeAsset',
+          'The associated PHAsset is provided for downstream use',
+        ]} />
+        <DocParagraph>
+          These tagged assets represent the <strong>final output</strong> of the SDK.
+        </DocParagraph>
+
+        <DocHeading level={3}>Failure Conditions</DocHeading>
+        <DocParagraph>
+          The SDK fails explicitly if <strong>no suitable room image</strong> can be selected.
+        </DocParagraph>
+        <DocParagraph>
+          Common failure reasons:
+        </DocParagraph>
+        <DocList items={[
+          'No indoor / room-like photos found',
+          'Images are too blurry or poorly lit',
+          'Limited photo access exposes too few usable assets',
+          'Manual mode receives an empty or irrelevant asset list',
+        ]} />
+        <DocParagraph>
+          In such cases, the SDK returns <code>.failure(error)</code> instead of weak or unreliable results.
+        </DocParagraph>
+
+        <DocHeading level={3}>One-Line Summary</DocHeading>
+        <DocParagraph>
+          <strong>The SDK selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category — or failing if none meet the quality threshold.</strong>
+        </DocParagraph>
+
+        <DocHeading level={3}>Recommended UX Handling</DocHeading>
+        <DocParagraph>
+          When selection fails:
+        </DocParagraph>
+        <DocList items={[
+          'Prompt users to allow more photos',
+          'Offer manual photo selection',
+          'Clearly explain what kind of photo is missing (e.g., "We couldn\'t find a clear room image")',
+        ]} />
+
+        <DocHeading level={3}>Best Practice</DocHeading>
+        <DocList items={[
+          'Run room selection: Once during onboarding, Store selected asset identifiers, Re-run only when permissions change or the user requests a refresh',
+        ]} />
+      </DocSection>
+
+      <DocSection id="human-selection">
+        <DocHeading level={2}>Human Selection</DocHeading>
+        <DocParagraph>
+          This document explains <strong>how the SDK selects the best human (person) image</strong> for fashion, accessories, 
+          shoes, cosmetics, and human-centric personalization, based strictly on the behavior described in the usage documentation.
+        </DocParagraph>
+
+        <DocHeading level={3}>Overview</DocHeading>
+        <DocParagraph>
+          When the SDK is used for <strong>human-based personalization</strong> (fashion, try-on, cosmetics, accessories, shoes), 
+          it automatically identifies, evaluates, and selects the <strong>best-quality human image</strong> from the user's photo 
+          library or a developer-provided photo set.
+        </DocParagraph>
+        <DocParagraph>
+          The selection is quality-driven, category-aware (male/female/person), and <strong>fails explicitly</strong> if required 
+          human images cannot be found.
+        </DocParagraph>
+
+        <DocHeading level={3}>Step-by-Step Selection Pipeline</DocHeading>
+
+        <DocHeading level={4}>1. Personalization Type Determines the Rules</DocHeading>
+        <DocParagraph>
+          When the SDK is initialized with:
+        </DocParagraph>
+        <CodeBlock
+          language="swift"
+          filename="SDKOptions.swift"
+          code={`personalizationType: .fashion`}
+        />
+        <DocParagraph>
+          (or another human-centric domain)
+        </DocParagraph>
+        <DocParagraph>
+          the SDK switches to <strong>person-focused selection logic</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          This configuration:
+        </DocParagraph>
+        <DocList items={[
+          'Enables human / face / body classifiers',
+          'Activates gender or person-category rules (male, female, person)',
+          'Enforces minimum requirements for successful personalization',
+          'Disables room or scene-centric scoring logic',
+        ]} />
+        <DocParagraph>
+          If required human categories are missing, the SDK returns a failure.
+        </DocParagraph>
+
+        <DocHeading level={4}>2. Photo Ingestion</DocHeading>
+        <DocParagraph>
+          Photos are collected in one of two ways:
+        </DocParagraph>
+        <DocList items={[
+          'Auto mode — Scans all photos accessible via iOS permissions. Full access scans entire library. Limited access scans only user-approved photos.',
+          'Manual mode — Scans only the PHAsset[] explicitly passed by the app. Useful for selfies, curated albums, or user-selected images.',
+        ]} />
+        <DocParagraph>
+          Only <strong>accessible and readable assets</strong> are considered.
+        </DocParagraph>
+
+        <DocHeading level={4}>3. Analyzing Stage — Human Detection & Filtering</DocHeading>
+        <DocParagraph>
+          During the <code>analyzing</code> phase, each image is evaluated for <strong>human suitability</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          Images are filtered based on:
+        </DocParagraph>
+        <DocList items={[
+          'Presence of a clearly detectable human',
+          'Face and/or body visibility',
+          'Image sharpness and focus',
+          'Lighting quality (not too dark or overexposed)',
+          'Occlusion checks (face covered, cropped, or partially visible)',
+        ]} />
+        <DocParagraph>
+          Images without a usable human subject are discarded.
+        </DocParagraph>
+
+        <DocHeading level={4}>4. Clustering Stage — Removing Near-Duplicates</DocHeading>
+        <DocParagraph>
+          In the <code>clustering</code> phase:
+        </DocParagraph>
+        <DocList items={[
+          'Similar human images (same person, same pose, burst shots) are grouped',
+          'Near-identical selfies or consecutive frames are clustered',
+          'Only the best representative image per cluster is retained',
+        ]} />
+        <DocParagraph>
+          This prevents repetitive or redundant human images from competing in ranking.
+        </DocParagraph>
+
+        <DocHeading level={4}>5. Selecting Best Photo — Human Quality Ranking</DocHeading>
+        <DocParagraph>
+          This is the <strong>core decision stage</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          For each required human category (e.g., male, female, person):
+        </DocParagraph>
+        <DocList items={[
+          'Remaining images are scored using internal quality heuristics: Face clarity and sharpness, Lighting balance, Pose suitability (neutral, front-facing preferred), Framing (head and body properly visible), Minimal occlusion or distortion',
+          'Images are ranked by overall score',
+          'The highest-scoring image is selected per required category',
+        ]} />
+        <DocParagraph>
+          Only one best human image is selected per category.
+        </DocParagraph>
+
+        <DocHeading level={4}>6. Tagging — Final Category Assignment</DocHeading>
+        <DocParagraph>
+          After selection:
+        </DocParagraph>
+        <DocList items={[
+          'Each chosen image is tagged with a validCategory (Example: maleFace, femaleFace, person)',
+          'The image is returned as a PersonalizeAsset',
+          'The associated PHAsset is provided for downstream use',
+        ]} />
+        <DocParagraph>
+          These tagged assets represent the <strong>final personalization inputs</strong>.
+        </DocParagraph>
+
+        <DocHeading level={3}>Failure Conditions</DocHeading>
+        <DocParagraph>
+          The SDK fails explicitly if <strong>required human images cannot be selected</strong>.
+        </DocParagraph>
+        <DocParagraph>
+          Common failure reasons:
+        </DocParagraph>
+        <DocList items={[
+          'No detectable human in accessible photos',
+          'Faces are too small, blurred, or occluded',
+          'Poor lighting across all candidates',
+          'Limited photo access exposes too few usable human images',
+          'Manual mode receives an empty or irrelevant asset list',
+        ]} />
+        <DocParagraph>
+          In such cases, the SDK returns <code>.failure(error)</code> rather than weak or unreliable results.
+        </DocParagraph>
+
+        <DocHeading level={3}>One-Line Summary</DocHeading>
+        <DocParagraph>
+          <strong>The SDK selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category — or failing if requirements are not met.</strong>
+        </DocParagraph>
+
+        <DocHeading level={3}>Recommended UX Handling</DocHeading>
+        <DocParagraph>
+          When selection fails:
+        </DocParagraph>
+        <DocList items={[
+          'Prompt users to allow more photos',
+          'Suggest uploading or selecting a clear selfie',
+          'Explain clearly what is missing (e.g., "We couldn\'t find a clear face photo")',
+        ]} />
+
+        <DocHeading level={3}>Best Practice</DocHeading>
+        <DocList items={[
+          'Run human selection: During onboarding or first try-on, Cache selected asset identifiers, Re-run only when permissions change or the user requests a refresh',
+        ]} />
+      </DocSection>
+    </>
+  );
+}

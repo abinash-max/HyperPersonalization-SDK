@@ -13,15 +13,9 @@ const pages: PageNavItem[] = [
   { path: '/introduction', title: 'Introduction', description: 'Get started with HyperPersonalization' },
   { path: '/usage', title: 'Usage', description: 'Initialize SDK and run personalization service' },
   { path: '/permissions', title: 'Permissions', description: 'Gallery access and permission handling' },
-  { path: '/model-architecture', title: 'Model Architecture', description: 'CoreML models and implementation' },
-  { path: '/room-analysis', title: 'Room Analysis', description: 'Room classification and storage' },
-  { path: '/human-analysis', title: 'Human Analysis', description: 'Face detection and clustering' },
-  { path: '/vendor-integration', title: 'Vendor Integration', description: 'Product mapping and generation' },
-  { path: '/performance', title: 'Performance', description: 'Optimization and device compatibility' },
-  { path: '/privacy', title: 'Privacy', description: 'Data handling and privacy manifest' },
-  { path: '/advanced-integration', title: 'Advanced Integration', description: 'Custom models and webhooks' },
-  { path: '/testing-support', title: 'Testing & Support', description: 'Debug mode and error codes' },
-  { path: '/ui-lifecycle', title: 'UI & Lifecycle', description: 'Localization and cache management' },
+  { path: '/model-architecture', title: 'CoreML Implementation', description: 'CoreML models and implementation' },
+  { path: '/image-analysis', title: 'Image Analysis', description: 'Room classification and face analysis' },
+  { path: '/vendor-integration', title: 'Image Generation', description: 'Product mapping and generation' },
 ];
 
 interface PageNavigationProps {

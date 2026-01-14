@@ -125,7 +125,7 @@ targets: [
           </div>
           <span className="text-primary">→</span>
           <div className="px-4 py-2 rounded-lg bg-primary/20 text-primary font-medium">
-            CoreML Models
+            AI Pipeline
           </div>
           <span className="text-primary">→</span>
           <div className="px-4 py-2 rounded-lg bg-muted text-foreground font-medium">

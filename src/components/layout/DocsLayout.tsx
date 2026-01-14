@@ -109,7 +109,7 @@ export function DocsLayout({ children, activeSection }: DocsLayoutProps) {
           {/* Footer */}
           <footer className="mt-8 pt-8 border-t border-border">
             <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-              <p>© 2024 HyperPersonalization. All rights reserved.</p>
+              <p>© 2024 gennoctua. All rights reserved.</p>
               <div className="flex gap-6">
                 <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
                 <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>

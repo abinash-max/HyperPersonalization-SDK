@@ -41,9 +41,6 @@ public enum PHAuthorizationStatus : Int, @unchecked Sendable {
 }`}
         />
 
-        <DocParagraph>
-          Code breakdown:
-        </DocParagraph>
         <DocList items={[
           'notDetermined (0): Permission not requested yet',
           'restricted (1): Restricted by parental controls',
@@ -87,9 +84,6 @@ public enum PHAuthorizationStatus : Int, @unchecked Sendable {
 }`}
         />
 
-        <DocParagraph>
-          Code breakdown:
-        </DocParagraph>
         <DocList items={[
           '1. Request authorization: withCheckedContinuation converts the callback-based API to async/await. PHPhotoLibrary.requestAuthorization shows the system permission dialog. The closure receives the user\'s choice. continuation.resume(returning: status) returns the status to the async function',
           '2. Check authorization status: Proceeds only if status is .authorized or .limited. Throws an error if denied, restricted, or not determined',
