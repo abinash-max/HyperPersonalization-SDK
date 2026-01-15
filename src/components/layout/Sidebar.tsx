@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight, Search, Book, Shield, Brain, Home, Users, Zap, Camera } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, Book, Shield, Home, Users, Zap, Camera } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -39,14 +39,6 @@ const phases: NavItem[] = [
     ],
   },
   {
-    id: 'phase-2',
-    label: 'CoreML Implementation',
-    icon: <Brain className="w-4 h-4" />,
-    children: [
-      { id: 'model-overview', label: 'CoreML Implementation' },
-    ],
-  },
-  {
     id: 'image-analysis',
     label: 'Image Analysis',
     icon: <Home className="w-4 h-4" />,
@@ -57,12 +49,12 @@ const phases: NavItem[] = [
   },
   {
     id: 'phase-5',
-    label: 'Image Generation',
+    label: 'Personalization',
     icon: <Zap className="w-4 h-4" />,
     children: [
       { id: 'product-mapping', label: 'Product Mapping' },
-      { id: 'fashion-generation', label: 'Fashion Generation' },
-      { id: 'furniture-generation', label: 'Furniture Generation' },
+      { id: 'fashion-generation', label: 'Fashion Personalization' },
+      { id: 'furniture-generation', label: 'Furniture Personalization' },
     ],
   },
 ];
@@ -79,7 +71,6 @@ const sectionToRoute: Record<string, string> = {
   'auto-service': '/usage',
   'manual-service': '/usage',
   'gallery-access': '/permissions',
-  'model-overview': '/model-architecture',
   'room-selection': '/image-analysis',
   'human-selection': '/image-analysis',
   'product-mapping': '/vendor-integration',
@@ -89,7 +80,7 @@ const sectionToRoute: Record<string, string> = {
 
 export function Sidebar({ activeSection }: SidebarProps) {
   const location = useLocation();
-  const [expandedPhases, setExpandedPhases] = useState<string[]>(['getting-started', 'phase-1', 'phase-2']);
+  const [expandedPhases, setExpandedPhases] = useState<string[]>(['getting-started', 'phase-1']);
   const [searchQuery, setSearchQuery] = useState('');
   const activeItemRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);

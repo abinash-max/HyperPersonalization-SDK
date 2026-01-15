@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import IntroductionPage from "./pages/IntroductionPage";
 import UsagePage from "./pages/UsagePage";
 import PermissionsPage from "./pages/PermissionsPage";
-import ModelArchitecturePage from "./pages/ModelArchitecturePage";
 import ImageAnalysisPage from "./pages/ImageAnalysisPage";
 import VendorIntegrationPage from "./pages/VendorIntegrationPage";
 import NotFound from "./pages/NotFound";
@@ -24,7 +23,6 @@ const App = () => (
           <Route path="/introduction" element={<IntroductionPage />} />
           <Route path="/usage" element={<UsagePage />} />
           <Route path="/permissions" element={<PermissionsPage />} />
-          <Route path="/model-architecture" element={<ModelArchitecturePage />} />
           <Route path="/image-analysis" element={<ImageAnalysisPage />} />
           <Route path="/vendor-integration" element={<VendorIntegrationPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

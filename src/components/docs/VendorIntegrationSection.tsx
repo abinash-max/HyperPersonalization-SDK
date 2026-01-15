@@ -342,10 +342,10 @@ enum FurnitureCategory: String, Codable {
 
   return (
     <DocSection id="vendor-integration">
-      <DocHeading level={1}>Image Generation</DocHeading>
+      <DocHeading level={1}>Personalization</DocHeading>
       <DocParagraph>
         This section covers integrating e-commerce vendor products with HyperPersonalization for 
-        fashion try-on and furniture visualization generation.
+        fashion personalization and furniture personalization.
       </DocParagraph>
 
       <DocHeading level={2} id="product-fetching">How to Get Product Images from Vendor Sites</DocHeading>
@@ -487,42 +487,38 @@ enum ImageError: Error {
         </ul>
       </DocCallout>
 
-      <DocHeading level={2} id="product-mapping">Vendor Product Mapping</DocHeading>
+      <DocHeading level={2} id="product-mapping">Product Mapping</DocHeading>
       <DocParagraph>
-        Map your e-commerce catalog to HyperPersonalization categories for seamless integration 
-        with the generation pipeline.
+        After Image Analysis completes, you'll know which images were discovered. Use this information to 
+        select the appropriate products from your vendor catalog for personalization.
       </DocParagraph>
 
+      <DocHeading level={3}>Mapping Based on Room Selection</DocHeading>
       <DocParagraph>
-        Here's what the code below does, step by step:
+        After Room Selection, the SDK returns the best room images found. Map products based on the room types discovered:
       </DocParagraph>
       <DocList items={[
-        '1. Define categories: Create enum with HyperPersonalization categories (maleFashion, femaleFashion, kidsFashion, furniture, homeDecor)',
-        '2. Map vendor products: Loop through vendor catalog and map each product to a HyperPersonalization category',
-        '3. Infer category: Use product department/type to determine which category it belongs to',
-        '4. Handle special cases: Map vendor-specific categories (e.g., "mens", "womens") to standard categories',
-        '5. Group products: Organize products into dictionary grouped by HyperPersonalization category',
-        '6. Return mapping: Return dictionary where each category contains list of products',
+        'If best <strong>bedroom</strong> image found → Use <strong>bed products</strong> for furniture personalization',
+        'If best <strong>living room</strong> image found → Use <strong>sofa products</strong> for furniture personalization',
+        'If best <strong>dining room</strong> image found → Use <strong>table products</strong> for furniture personalization',
       ]} />
 
-      <CodeBlock 
-        code={productMappingCode} 
-        filename="VendorProductMapper.swift"
-        language="swift"
-      />
+      <DocHeading level={3}>Mapping Based on Human Selection</DocHeading>
+      <DocParagraph>
+        After Human Selection, the SDK returns the best human images found. Map products based on the person types discovered:
+      </DocParagraph>
+      <DocList items={[
+        'If best <strong>male</strong> image found → Use <strong>male fashion products</strong> (shirts, pants, etc.) for fashion personalization',
+        'If best <strong>female</strong> image found → Use <strong>female fashion products</strong> (dresses, tops, etc.) for fashion personalization',
+        'If best <strong>kids</strong> image found → Use <strong>kids fashion products</strong> for fashion personalization',
+      ]} />
 
-      <DocTable 
-          headers={['Vendor Category', 'HyperPersonalization Category', 'Generation Type']}
-        rows={[
-          ['Men\'s Apparel', 'maleFashion', 'Fashion Try-On'],
-          ['Women\'s Apparel', 'femaleFashion', 'Fashion Try-On'],
-          ['Kids Clothing', 'kidsFashion', 'Fashion Try-On'],
-          ['Sofas, Tables, Beds', 'furniture', 'Room Visualization'],
-          ['Decor, Lighting', 'homeDecor', 'Room Visualization'],
-        ]}
-      />
+      <DocCallout type="info" title="Summary">
+        <strong>Simple rule:</strong> Use the images discovered in Image Analysis to determine which products 
+        to personalize. Room images → Furniture products. Human images → Fashion products.
+      </DocCallout>
 
-      <DocHeading level={2} id="fashion-generation">Fashion Generation (Virtual Try-On)</DocHeading>
+      <DocHeading level={2} id="fashion-generation">Fashion Personalization</DocHeading>
       <DocParagraph>
         Visualize how a garment looks on a real user by generating a <strong>virtual try-on image</strong> that combines the user photo and the garment image.
       </DocParagraph>
@@ -535,7 +531,7 @@ enum ImageError: Error {
         <strong>Given a user photo, a garment product image URL, and a product type, the SDK generates a combined image showing the user wearing the selected garment — or fails with a clear error.</strong>
       </DocParagraph>
 
-      <DocHeading level={3}>When to use Fashion Generation</DocHeading>
+      <DocHeading level={3}>When to use Fashion Personalization</DocHeading>
       <DocParagraph>
         Use this API when:
       </DocParagraph>
@@ -553,22 +549,118 @@ enum ImageError: Error {
         'Personalized shopping journeys',
       ]} />
 
+      <DocHeading level={3}>How to Choose Garment URLs</DocHeading>
+      <DocParagraph>
+        When working with product catalogs, garments often have <strong>multiple catalog images</strong> showing different angles, 
+        details, or views of the same product. You need to specify which image URL index should be used for personalization.
+      </DocParagraph>
+      <DocParagraph>
+        <strong>Example scenario:</strong> A garment product has 5 catalog images (indices 0-4). You want to personalize 
+        images at indices 0, 2, and 4. You need to pass these indices along with the base product information.
+      </DocParagraph>
+      
+      <DocHeading level={4}>Understanding Catalog Image Indices</DocHeading>
+      <DocParagraph>
+        Product catalogs typically provide an array of image URLs. Each URL has an index position:
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="GarmentCatalog.swift"
+        code={`// Example: Garment product with 5 catalog images
+struct GarmentProduct {
+    let productId: String
+    let catalogImages: [String]  // Array of image URLs
+    
+    // Example catalog images:
+    // Index 0: "https://vendor.com/products/shirt-456-front.jpg"
+    // Index 1: "https://vendor.com/products/shirt-456-back.jpg"
+    // Index 2: "https://vendor.com/products/shirt-456-detail.jpg"
+    // Index 3: "https://vendor.com/products/shirt-456-side.jpg"
+    // Index 4: "https://vendor.com/products/shirt-456-closeup.jpg"
+}
+
+// You want to personalize images at indices 0, 2, and 4
+let indicesToPersonalize = [0, 2, 4]
+
+// Get the URLs for those indices
+let urlsToPersonalize = indicesToPersonalize.map { index in
+    garmentProduct.catalogImages[index]
+}
+// Result: [
+//   "https://vendor.com/products/shirt-456-front.jpg",
+//   "https://vendor.com/products/shirt-456-detail.jpg",
+//   "https://vendor.com/products/shirt-456-closeup.jpg"
+// ]`}
+      />
+      
+      <DocHeading level={4}>Best Practices for Selecting Images</DocHeading>
+      <DocList items={[
+        'Choose front-facing images (index 0) for best try-on results',
+        'Select detail images (index 2) when showing product features',
+        'Use closeup images (index 4) for high-quality visualization',
+        'Avoid back views or side angles unless specifically needed',
+        'Ensure selected images show the garment clearly and fully',
+      ]} />
+      
+      <DocCallout type="info" title="Important">
+        <strong>Index-based selection:</strong> When passing garment URLs from a catalog, always specify which image 
+        index needs to be personalized. This allows you to control which views of the product are used for try-on generation.
+      </DocCallout>
+
       <DocHeading level={3}>Core API</DocHeading>
       <DocHeading level={4}>generateFashion(...)</DocHeading>
       <DocParagraph>
-        This is the primary function used to generate a fashion try-on image.
+        This is the primary function used to generate a fashion try-on image. When working with catalog images, 
+        you can specify which image index to use.
       </DocParagraph>
       <CodeBlock
         language="swift"
         filename="FashionGeneration.swift"
-        code={`sdk.generateFashion(
+        code={`// Basic usage with single URL
+sdk.generateFashion(
     thumbnailImg: userPhotoImage,     // UIImage of the user
     garmentImageUrl: "https://example.com/shirt.jpg", // URL of the garment image
     productType: "upper_body",        // "upper_body", "lower_body", "dresses"
     completion: { result in
         // Handle the result
     }
-)`}
+)
+
+// Usage with catalog image index
+let garmentProduct = GarmentProduct(
+    productId: "shirt-456",
+    catalogImages: [
+        "https://vendor.com/products/shirt-456-front.jpg",    // Index 0
+        "https://vendor.com/products/shirt-456-back.jpg",   // Index 1
+        "https://vendor.com/products/shirt-456-detail.jpg",  // Index 2
+        "https://vendor.com/products/shirt-456-side.jpg",    // Index 3
+        "https://vendor.com/products/shirt-456-closeup.jpg"  // Index 4
+    ]
+)
+
+// Personalize images at indices 0, 2, and 4
+let indicesToPersonalize = [0, 2, 4]
+
+for index in indicesToPersonalize {
+    let garmentUrl = garmentProduct.catalogImages[index]
+    
+    // Track which catalog image index you're personalizing
+    sdk.generateFashion(
+        thumbnailImg: userPhotoImage,
+        garmentImageUrl: garmentUrl,  // URL from catalog at the specified index
+        productType: "upper_body",
+        completion: { result in
+            switch result {
+            case .success(let imageResult):
+                // Store result with its index for reference
+                print("✅ Generated try-on for catalog image index \\(index)")
+                // You can track: imageResult with index for your records
+            case .failure(let error):
+                print("❌ Failed for catalog index \\(index): \\(error)")
+            }
+        }
+    )
+}`}
       />
 
       <DocHeading level={3}>Parameters explained</DocHeading>
@@ -581,7 +673,18 @@ enum ImageError: Error {
       <DocHeading level={4}>garmentImageUrl</DocHeading>
       <DocList items={[
         'Type: String',
-        'Description: A publicly accessible URL pointing to the garment product image that should be tried on.',
+        'Description: A publicly accessible URL pointing to the garment product image that should be tried on. This can be a single URL or one selected from a catalog image array.',
+      ]} />
+      
+      <DocHeading level={4}>Working with Catalog Image Indices</DocHeading>
+      <DocParagraph>
+        When working with catalog images, you should track which index each URL corresponds to. For example, 
+        if a product has 5 catalog images and you want to personalize indices 0, 2, and 4:
+      </DocParagraph>
+      <DocList items={[
+        'Extract URLs from the catalog array at the desired indices: <code>catalogImages[0]</code>, <code>catalogImages[2]</code>, <code>catalogImages[4]</code>',
+        'Call <code>generateFashion()</code> for each URL',
+        'Track the index in your completion handler or result storage for reference',
       ]} />
 
       <DocHeading level={4}>productType</DocHeading>
@@ -726,7 +829,7 @@ sdk.generateFashion(
         This API enables <strong>real-time, personalized fashion visualization</strong> with minimal integration effort.
       </DocParagraph>
 
-      <DocHeading level={2} id="furniture-generation">Furniture Generation (Room Visualization)</DocHeading>
+      <DocHeading level={2} id="furniture-generation">Furniture Personalization</DocHeading>
       <DocParagraph>
         Place a furniture item into a real room image to generate a <strong>virtual room visualization</strong> that shows how the product looks in the user's space.
       </DocParagraph>
@@ -739,7 +842,7 @@ sdk.generateFashion(
         <strong>Given a room photo, a room type, and a furniture product image URL, the SDK generates a combined image showing the furniture placed inside the room — or fails with a clear error.</strong>
       </DocParagraph>
 
-      <DocHeading level={3}>When to use Furniture Generation</DocHeading>
+      <DocHeading level={3}>When to use Furniture Personalization</DocHeading>
       <DocParagraph>
         Use this API when:
       </DocParagraph>
@@ -757,22 +860,118 @@ sdk.generateFashion(
         'Personalized home shopping experiences',
       ]} />
 
+      <DocHeading level={3}>How to Choose Furniture URLs</DocHeading>
+      <DocParagraph>
+        When working with product catalogs, furniture items often have <strong>multiple catalog images</strong> showing 
+        different angles, room settings, or detail views. You need to specify which image URL index should be used for personalization.
+      </DocParagraph>
+      <DocParagraph>
+        <strong>Example scenario:</strong> A furniture product has 5 catalog images (indices 0-4). You want to personalize 
+        images at indices 0, 2, and 4. You need to pass these indices along with the base product information.
+      </DocParagraph>
+      
+      <DocHeading level={4}>Understanding Catalog Image Indices</DocHeading>
+      <DocParagraph>
+        Product catalogs typically provide an array of image URLs. Each URL has an index position:
+      </DocParagraph>
+      <CodeBlock
+        language="swift"
+        filename="FurnitureCatalog.swift"
+        code={`// Example: Furniture product with 5 catalog images
+struct FurnitureProduct {
+    let productId: String
+    let catalogImages: [String]  // Array of image URLs
+    
+    // Example catalog images:
+    // Index 0: "https://vendor.com/products/sofa-123-front.jpg"
+    // Index 1: "https://vendor.com/products/sofa-123-back.jpg"
+    // Index 2: "https://vendor.com/products/sofa-123-detail.jpg"
+    // Index 3: "https://vendor.com/products/sofa-123-room-view.jpg"
+    // Index 4: "https://vendor.com/products/sofa-123-closeup.jpg"
+}
+
+// You want to personalize images at indices 0, 2, and 4
+let indicesToPersonalize = [0, 2, 4]
+
+// Get the URLs for those indices
+let urlsToPersonalize = indicesToPersonalize.map { index in
+    furnitureProduct.catalogImages[index]
+}
+// Result: [
+//   "https://vendor.com/products/sofa-123-front.jpg",
+//   "https://vendor.com/products/sofa-123-detail.jpg",
+//   "https://vendor.com/products/sofa-123-closeup.jpg"
+// ]`}
+      />
+      
+      <DocHeading level={4}>Best Practices for Selecting Images</DocHeading>
+      <DocList items={[
+        'Choose front-facing images (index 0) for best room placement results',
+        'Select detail images (index 2) when showing product features',
+        'Use closeup images (index 4) for high-quality visualization',
+        'Avoid images with complex backgrounds or other furniture',
+        'Ensure selected images show the furniture item clearly and fully',
+      ]} />
+      
+      <DocCallout type="info" title="Important">
+        <strong>Index-based selection:</strong> When passing furniture URLs from a catalog, always specify which image 
+        index needs to be personalized. This allows you to control which views of the product are used for room visualization.
+      </DocCallout>
+
       <DocHeading level={3}>Core API</DocHeading>
       <DocHeading level={4}>generateFurniture(...)</DocHeading>
       <DocParagraph>
-        This is the primary function used to generate a furniture visualization inside a room image.
+        This is the primary function used to generate a furniture visualization inside a room image. When working with 
+        catalog images, you can specify which image index to use.
       </DocParagraph>
       <CodeBlock
         language="swift"
         filename="FurnitureGeneration.swift"
-        code={`sdk.generateFurniture(
+        code={`// Basic usage with single URL
+sdk.generateFurniture(
     thumbnailImg: userRoomImage,      // UIImage of the room
     roomType: "living_room",          // "bedroom", "living_room", "dining_room"
     objectUrl: "https://example.com/sofa.jpg", // URL of the furniture product image
     completion: { result in
         // Handle the result
     }
-)`}
+)
+
+// Usage with catalog image index
+let furnitureProduct = FurnitureProduct(
+    productId: "sofa-123",
+    catalogImages: [
+        "https://vendor.com/products/sofa-123-front.jpg",    // Index 0
+        "https://vendor.com/products/sofa-123-back.jpg",    // Index 1
+        "https://vendor.com/products/sofa-123-detail.jpg",  // Index 2
+        "https://vendor.com/products/sofa-123-room-view.jpg", // Index 3
+        "https://vendor.com/products/sofa-123-closeup.jpg"   // Index 4
+    ]
+)
+
+// Personalize images at indices 0, 2, and 4
+let indicesToPersonalize = [0, 2, 4]
+
+for index in indicesToPersonalize {
+    let furnitureUrl = furnitureProduct.catalogImages[index]
+    
+    // Track which catalog image index you're personalizing
+    sdk.generateFurniture(
+        thumbnailImg: userRoomImage,
+        roomType: "living_room",
+        objectUrl: furnitureUrl,  // URL from catalog at the specified index
+        completion: { result in
+            switch result {
+            case .success(let imageResult):
+                // Store result with its index for reference
+                print("✅ Generated visualization for catalog image index \\(index)")
+                // You can track: imageResult with index for your records
+            case .failure(let error):
+                print("❌ Failed for catalog index \\(index): \\(error)")
+            }
+        }
+    )
+}`}
       />
 
       <DocHeading level={3}>Parameters explained</DocHeading>
@@ -799,7 +998,18 @@ sdk.generateFashion(
       <DocHeading level={4}>objectUrl</DocHeading>
       <DocList items={[
         'Type: String',
-        'Description: A publicly accessible URL pointing to the furniture product image that should be placed into the room.',
+        'Description: A publicly accessible URL pointing to the furniture product image that should be placed into the room. This can be a single URL or one selected from a catalog image array.',
+      ]} />
+      
+      <DocHeading level={4}>Working with Catalog Image Indices</DocHeading>
+      <DocParagraph>
+        When working with catalog images, you should track which index each URL corresponds to. For example, 
+        if a product has 5 catalog images and you want to personalize indices 0, 2, and 4:
+      </DocParagraph>
+      <DocList items={[
+        'Extract URLs from the catalog array at the desired indices: <code>catalogImages[0]</code>, <code>catalogImages[2]</code>, <code>catalogImages[4]</code>',
+        'Call <code>generateFurniture()</code> for each URL',
+        'Track the index in your completion handler or result storage for reference',
       ]} />
 
       <DocHeading level={4}>completion</DocHeading>
