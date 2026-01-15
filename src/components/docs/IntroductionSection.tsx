@@ -16,7 +16,7 @@ export function IntroductionSection() {
             HyperPersonalization
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mb-6">
-            On-device ML-powered photo analysis for personalized shopping experiences. 
+            On-device AI-powered photo analysis for personalized shopping experiences. 
             Analyze rooms, detect faces, and generate product visualizations, all with privacy-first architecture.
           </p>
           
