@@ -164,7 +164,7 @@ class PLImageNormalizer {
         return normalizedImage ?? image
     }
     
-    /// Convert image to RGB color space (CoreML requires RGB, not BGR)
+    /// Convert image to RGB color space (AI models require RGB, not BGR)
     private func convertToRGB(_ image: UIImage) -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
         
@@ -191,7 +191,7 @@ class PLImageNormalizer {
         return UIImage(cgImage: outputCGImage)
     }
     
-    /// Create CVPixelBuffer for CoreML input
+    /// Create CVPixelBuffer for AI models input
     private func createPixelBuffer(
         from image: UIImage,
         size: CGSize
@@ -402,8 +402,8 @@ struct CachedResult: Codable {
       <DocList items={[
         '1. Handle EXIF orientation: Fix image rotation based on EXIF data (some photos are rotated)',
         '2. Resize image: Resize to target size (e.g., 224×224 for gender/age models)',
-        '3. Convert to RGB: Convert image to RGB color space (CoreML requires RGB, not BGR)',
-        '4. Create pixel buffer: Convert UIImage to CVPixelBuffer which CoreML models need',
+        '3. Convert to RGB: Convert image to RGB color space (AI models require RGB, not BGR)',
+        '4. Create pixel buffer: Convert UIImage to CVPixelBuffer which AI models need',
         '5. Lock buffer: Lock pixel buffer for writing, draw image, then unlock',
         '6. Return buffer: Return CVPixelBuffer ready to pass to model',
       ]} />
@@ -452,7 +452,7 @@ class PLImageNormalizer {
         return normalizedImage ?? image
     }
     
-    /// Convert image to RGB color space (CoreML requires RGB, not BGR)
+    /// Convert image to RGB color space (AI models require RGB, not BGR)
     private func convertToRGB(_ image: UIImage) -> UIImage? {
         guard let cgImage = image.cgImage else { return nil }
         
@@ -484,7 +484,7 @@ class PLImageNormalizer {
 
       <DocHeading level={3}>Part 3: Create Pixel Buffer</DocHeading>
       <CodeBlock 
-        code={`    /// Create CVPixelBuffer for CoreML input
+        code={`    /// Create CVPixelBuffer for AI models input
     private func createPixelBuffer(
         from image: UIImage,
         size: CGSize
@@ -537,7 +537,7 @@ class PLImageNormalizer {
       />
 
       <DocCallout type="info" title="Color Space">
-        CoreML models expect RGB color space. Images captured in alternative color spaces 
+        AI models expect RGB color space. Images captured in alternative color spaces 
         (including BGR from some sources) are automatically converted during normalization.
       </DocCallout>
 
@@ -547,7 +547,7 @@ class PLImageNormalizer {
           ['EXIF Orientation', 'Normalize rotation/flip', 'Correct face detection orientation'],
           ['Resize', 'Match model input size', 'Memory efficiency, consistent input'],
           ['RGB Conversion', 'Standardize color space', 'Model compatibility and accuracy'],
-          ['Pixel Buffer', 'CoreML input format', 'Hardware acceleration support'],
+          ['Pixel Buffer', 'AI models input format', 'Hardware acceleration support'],
         ]}
       />
     </DocSection>

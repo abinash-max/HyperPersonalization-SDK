@@ -8,7 +8,7 @@ export function UsageSection() {
       <DocHeading level={1}>HyperPersonalization iOS SDK Documentation (Swift)</DocHeading>
       
       <DocParagraph>
-        Personalize your <strong>entire e-commerce inventory</strong> using the customer's real photos — without making them manually pick "the perfect selfie" or "the perfect room shot".
+        Personalize your <strong>entire e-commerce inventory</strong> using the customer's real photos, without making them manually pick "the perfect selfie" or "the perfect room shot".
       </DocParagraph>
 
       <DocParagraph>
@@ -17,7 +17,7 @@ export function UsageSection() {
 
       <DocHeading level={2} id="what-sdk-does">What this SDK does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>Given a personalization goal (fashion/home goods/etc.) and a photo access strategy (auto/manual), the SDK analyzes photos in parallel, clusters and ranks them, and returns the best photo assets per required category — or fails with a clear, developer-friendly error when requirements can't be met.</strong>
+        <strong>Given a personalization goal (fashion/home goods/etc.) and a photo access strategy (auto/manual), the SDK analyzes photos in parallel, clusters and ranks them, and returns the best photo assets per required category, or fails with a clear, developer-friendly error when requirements can't be met.</strong>
       </DocParagraph>
 
       <DocHeading level={2} id="supported-domains">Supported personalization domains</DocHeading>
@@ -73,8 +73,8 @@ export function UsageSection() {
         This decides <em>how the SDK gets images to analyze</em>.
       </DocParagraph>
       <DocList items={[
-        '.auto — The SDK scans the user-accessible photo library automatically. If the user grants Full Access: the SDK can scan the entire library. If the user grants Limited Access: iOS only exposes the selected items; the SDK scans only what it can see.',
-        'Manual scanning (developer-provided PHAsset[]) — For album/folder scope, limited sets, custom pickers, or explicit user selection, you provide PHAsset items and call the manual API.',
+        '.auto - The SDK scans the user-accessible photo library automatically. If the user grants Full Access: the SDK can scan the entire library. If the user grants Limited Access: iOS only exposes the selected items; the SDK scans only what it can see.',
+        'Manual scanning (developer-provided PHAsset[]) - For album/folder scope, limited sets, custom pickers, or explicit user selection, you provide PHAsset items and call the manual API.',
       ]} />
 
       <DocCallout type="info" title="Practical mapping">
@@ -122,7 +122,7 @@ let sdk = AIModelSDK.shared`}
         Automatically scan the user-accessible photo library. Use when you want the SDK to scan the photo library automatically.
       </DocParagraph>
 
-      <DocHeading level={3} id="step-1">Step 1 — Create SDKOptions</DocHeading>
+      <DocHeading level={3} id="step-1">Step 1 - Create SDKOptions</DocHeading>
       <CodeBlock
         language="swift"
         filename="SDKOptions.swift"
@@ -146,7 +146,7 @@ let sdk = AIModelSDK.shared`}
         '.homegoods + manual assets = only evaluate photos you provide (e.g., an "Apartment" album)',
       ]} />
 
-      <DocHeading level={3} id="step-2">Step 2 — Run Auto scan</DocHeading>
+      <DocHeading level={3} id="step-2">Step 2 - Run Auto scan</DocHeading>
       <CodeBlock
         language="swift"
         filename="PersonalizationService.swift"
@@ -239,7 +239,7 @@ Task {
         <strong>Why singleton?</strong> This typically ensures model/session resources are reused efficiently and avoids repeated initialization overhead.
       </DocParagraph>
 
-      <DocHeading level={4} id="run-personalization-service-auto">runPersonalizationService(sdkOptions:progress:completion:) — Auto scan</DocHeading>
+      <DocHeading level={4} id="run-personalization-service-auto">runPersonalizationService(sdkOptions:progress:completion:) - Auto scan</DocHeading>
       <DocParagraph>
         <strong>Use when:</strong> You want the SDK to scan the user-accessible photo library automatically.
       </DocParagraph>
@@ -283,7 +283,7 @@ Task {
         'If requirements for the selected domain cannot be satisfied (e.g., fashion requires a suitable person image and none exist), the result is .failure(...).',
       ]} />
 
-      <DocHeading level={4} id="run-personalization-service-manual">runPersonalizationServiceWith(sdkOptions:arrPHAssets:progress:completion:) — Manual scan</DocHeading>
+      <DocHeading level={4} id="run-personalization-service-manual">runPersonalizationServiceWith(sdkOptions:arrPHAssets:progress:completion:) - Manual scan</DocHeading>
       <DocParagraph>
         <strong>Use when:</strong> You want full control over which photos are analyzed (album/folder/user-picked/limited set/testing).
       </DocParagraph>
@@ -337,8 +337,8 @@ Task {
         Common fields shown in your current implementation:
       </DocParagraph>
       <DocList items={[
-        'message: String — Human-readable success message (useful for logs/debug; don\'t rely on exact wording).',
-        'arrPersonalizeAsset: [PersonalizeAsset] — The selected best assets for personalization, per recognized category.',
+        'message: String - Human-readable success message (useful for logs/debug; don\'t rely on exact wording).',
+        'arrPersonalizeAsset: [PersonalizeAsset] - The selected best assets for personalization, per recognized category.',
       ]} />
 
       <DocHeading level={3} id="personalize-asset">PersonalizeAsset</DocHeading>
@@ -346,8 +346,8 @@ Task {
         Each item generally contains:
       </DocParagraph>
       <DocList items={[
-        'validCategory — An enum (or string-backed enum) that tells you what the asset is best suited for (e.g., bedroom, living room, male face, female face, etc.)',
-        'phAsset: PHAsset — A Photos framework reference. You can later fetch image data via Photos APIs in your app.',
+        'validCategory - An enum (or string-backed enum) that tells you what the asset is best suited for (e.g., bedroom, living room, male face, female face, etc.)',
+        'phAsset: PHAsset - A Photos framework reference. You can later fetch image data via Photos APIs in your app.',
       ]} />
 
       <DocCallout type="info">
@@ -534,7 +534,7 @@ Task {
 
       <DocHeading level={2} id="practical-examples">Practical integration examples</DocHeading>
 
-      <DocHeading level={3}>Example 1 — Fashion-only app (Auto scan)</DocHeading>
+      <DocHeading level={3}>Example 1 - Fashion-only app (Auto scan)</DocHeading>
       <CodeBlock
         language="swift"
         filename="FashionAppExample.swift"
@@ -564,7 +564,7 @@ Task {
 }`}
       />
 
-      <DocHeading level={3}>Example 2 — Scan a specific album (Manual scan)</DocHeading>
+      <DocHeading level={3}>Example 2 - Scan a specific album (Manual scan)</DocHeading>
       <DocParagraph>
         You fetch assets in your app, then pass them in.
       </DocParagraph>

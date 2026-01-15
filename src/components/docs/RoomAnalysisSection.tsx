@@ -417,12 +417,12 @@ struct RoomCarouselView: View {
         ]} />
 
         <DocList items={[
-          <><strong>Low Confidence Score</strong> — Below 0.60 for room classification</>,
-          <><strong>Blurry Images</strong> — Detected via Laplacian variance analysis</>,
-          <><strong>Dark/Overexposed</strong> — Brightness outside 0.15-0.90 range</>,
-          <><strong>Heavily Cluttered</strong> — Clutter score above 0.85</>,
-          <><strong>Outdoor Scenes</strong> — Classified as outdoor/garden</>,
-          <><strong>Cropped/Partial</strong> — Insufficient room context visible</>,
+          <><strong>Low Confidence Score</strong> - Below 0.60 for room classification</>,
+          <><strong>Blurry Images</strong> - Detected via Laplacian variance analysis</>,
+          <><strong>Dark/Overexposed</strong> - Brightness outside 0.15-0.90 range</>,
+          <><strong>Heavily Cluttered</strong> - Clutter score above 0.85</>,
+          <><strong>Outdoor Scenes</strong> - Classified as outdoor/garden</>,
+          <><strong>Cropped/Partial</strong> - Insufficient room context visible</>,
         ]} />
 
         <DocParagraph>

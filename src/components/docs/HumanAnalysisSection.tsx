@@ -958,7 +958,7 @@ class ClusteringAPIPreparer {
     private func extractFaceEmbedding(from image: UIImage) throws -> [Float] {
         // Use FaceEmbedding.mlmodel to extract embedding
         // This returns 512 numbers representing the face
-        return [] // Placeholder - actual implementation uses CoreML model
+        return [] // Placeholder - actual implementation uses AI model
     }
 }`} 
         filename="ClusteringAPIInput.swift"

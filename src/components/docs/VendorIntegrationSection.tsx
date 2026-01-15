@@ -389,7 +389,7 @@ enum FurnitureCategory: String, Codable {
 
       <DocHeading level={3}>What this feature does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>Given a user photo, a garment product image URL, and a product type, the SDK generates a combined image showing the user wearing the selected garment — or fails with a clear error.</strong>
+        <strong>Given a user photo, a garment product image URL, and a product type, the SDK generates a combined image showing the user wearing the selected garment, or fails with a clear error.</strong>
       </DocParagraph>
 
       <DocHeading level={3}>When to use Fashion Personalization</DocHeading>
@@ -557,9 +557,9 @@ for index in indicesToPersonalize {
         Supported values:
       </DocParagraph>
       <DocList items={[
-        '"upper_body" — shirts, t-shirts, jackets, tops',
-        '"lower_body" — pants, jeans, skirts, shorts',
-        '"dresses" — dresses, gowns, one-piece garments',
+        '"upper_body" - shirts, t-shirts, jackets, tops',
+        '"lower_body" - pants, jeans, skirts, shorts',
+        '"dresses" - dresses, gowns, one-piece garments',
       ]} />
 
       <DocHeading level={4}>completion</DocHeading>
@@ -700,7 +700,7 @@ sdk.generateFashion(
 
       <DocHeading level={3}>What this feature does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>Given a room photo, a room type, and a furniture product image URL, the SDK generates a combined image showing the furniture placed inside the room — or fails with a clear error.</strong>
+        <strong>Given a room photo, a room type, and a furniture product image URL, the SDK generates a combined image showing the furniture placed inside the room, or fails with a clear error.</strong>
       </DocParagraph>
 
       <DocHeading level={3}>When to use Furniture Personalization</DocHeading>

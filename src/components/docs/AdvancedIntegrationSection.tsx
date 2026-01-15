@@ -11,7 +11,7 @@ class PLModelRegistry {
     
     private var customModels: [ModelType: MLModel] = [:]
     
-    /// Register a custom CoreML model to replace bundled model
+    /// Register a custom AI model to replace bundled model
     func registerCustomModel(
         _ model: MLModel,
         for type: ModelType
@@ -336,7 +336,7 @@ extension Notification.Name {
         Here's what the code below does, step by step:
       </DocParagraph>
       <DocList items={[
-        '1. Register custom model: Replace default model with your custom CoreML model',
+        '1. Register custom model: Replace default model with your custom AI model',
         '2. Validate compatibility: Check that custom model has same input/output format as default',
         '3. Load from URL: Load compiled .mlmodelc file from disk or network',
         '4. Check inputs: Verify model has expected input features (e.g., "image" input)',
@@ -355,7 +355,7 @@ class PLModelRegistry {
     
     private var customModels: [ModelType: MLModel] = [:]
     
-    /// Register a custom CoreML model to replace bundled model
+    /// Register a custom AI model to replace bundled model
     func registerCustomModel(
         _ model: MLModel,
         for type: ModelType

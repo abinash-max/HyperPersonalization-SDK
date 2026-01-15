@@ -60,60 +60,29 @@ export function ImageAnalysisSection() {
           Photos are collected in one of two ways:
         </DocParagraph>
         <DocList items={[
-          'Auto mode — Scans all photos accessible via iOS permissions. Full access scans entire library. Limited access scans only user-approved photos.',
-          'Manual mode — Scans only the PHAsset[] explicitly passed by the app. Common for album-based or user-selected room photos.',
+          'Auto mode - Scans all photos accessible via iOS permissions. Full access scans entire library. Limited access scans only user-approved photos.',
+          'Manual mode - Scans only the PHAsset[] explicitly passed by the app. Common for album-based or user-selected room photos.',
         ]} />
         <DocParagraph>
           Only <strong>accessible and readable assets</strong> enter the pipeline.
         </DocParagraph>
 
-        <DocHeading level={4}>3. Analyzing Stage — Room Suitability Filtering</DocHeading>
+        <DocHeading level={4}>3. Analyzing Stage - Room Suitability Filtering</DocHeading>
         <DocParagraph>
-          During the <code>analyzing</code> phase, each image is evaluated for <strong>room suitability</strong>.
-        </DocParagraph>
-        <DocParagraph>
-          Images are filtered based on:
-        </DocParagraph>
-        <DocList items={[
-          'Indoor scene characteristics (walls, floors, furniture context)',
-          'Image clarity and sharpness',
-          'Adequate lighting (not too dark or overexposed)',
-          'Sufficient resolution for downstream rendering',
-        ]} />
-        <DocParagraph>
-          Images that do <strong>not resemble a usable room</strong> are discarded at this stage.
+          During the <code>analyzing</code> phase, images are filtered for room suitability based on indoor scene characteristics, clarity, lighting, and resolution.
         </DocParagraph>
 
-        <DocHeading level={4}>4. Clustering Stage — Removing Near-Duplicates</DocHeading>
+        <DocHeading level={4}>4. Clustering Stage - Removing Near-Duplicates</DocHeading>
         <DocParagraph>
-          In the <code>clustering</code> phase:
-        </DocParagraph>
-        <DocList items={[
-          'Visually similar room images are grouped together',
-          'Burst shots or near-identical angles are clustered',
-          'Only the best representative image per cluster is retained',
-        ]} />
-        <DocParagraph>
-          This prevents redundant or repetitive room images from competing during selection.
+          Visually similar room images are grouped together, and only the best representative image per cluster is retained.
         </DocParagraph>
 
-        <DocHeading level={4}>5. Selecting Best Photo — Quality-Based Ranking</DocHeading>
+        <DocHeading level={4}>5. Selecting Best Photo - Quality-Based Ranking</DocHeading>
         <DocParagraph>
-          This is the <strong>core decision stage</strong>.
-        </DocParagraph>
-        <DocParagraph>
-          For each detected room category:
-        </DocParagraph>
-        <DocList items={[
-          'Remaining images are scored using internal quality heuristics: Sharpness, Balanced lighting, Clear room framing, Minimal obstruction, Suitability for product placement',
-          'Images are ranked by overall score',
-          'The highest-scoring image is selected as the best candidate',
-        ]} />
-        <DocParagraph>
-          Only one best image is selected per room category.
+          For each detected room category, remaining images are scored and ranked by quality. The highest-scoring image is selected as the best candidate.
         </DocParagraph>
 
-        <DocHeading level={4}>6. Tagging — Final Category Assignment</DocHeading>
+        <DocHeading level={4}>6. Tagging - Final Category Assignment</DocHeading>
         <DocParagraph>
           After selection:
         </DocParagraph>
@@ -145,7 +114,7 @@ export function ImageAnalysisSection() {
 
         <DocHeading level={3}>One-Line Summary</DocHeading>
         <DocParagraph>
-          <strong>The SDK selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category — or failing if none meet the quality threshold.</strong>
+          <strong>The SDK selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category, or failing if none meet the quality threshold.</strong>
         </DocParagraph>
 
         <DocHeading level={3}>Recommended UX Handling</DocHeading>
@@ -217,61 +186,29 @@ export function ImageAnalysisSection() {
           Photos are collected in one of two ways:
         </DocParagraph>
         <DocList items={[
-          'Auto mode — Scans all photos accessible via iOS permissions. Full access scans entire library. Limited access scans only user-approved photos.',
-          'Manual mode — Scans only the PHAsset[] explicitly passed by the app. Useful for selfies, curated albums, or user-selected images.',
+          'Auto mode - Scans all photos accessible via iOS permissions. Full access scans entire library. Limited access scans only user-approved photos.',
+          'Manual mode - Scans only the PHAsset[] explicitly passed by the app. Useful for selfies, curated albums, or user-selected images.',
         ]} />
         <DocParagraph>
           Only <strong>accessible and readable assets</strong> are considered.
         </DocParagraph>
 
-        <DocHeading level={4}>3. Analyzing Stage — Human Detection & Filtering</DocHeading>
+        <DocHeading level={4}>3. Analyzing Stage - Human Detection & Filtering</DocHeading>
         <DocParagraph>
-          During the <code>analyzing</code> phase, each image is evaluated for <strong>human suitability</strong>.
-        </DocParagraph>
-        <DocParagraph>
-          Images are filtered based on:
-        </DocParagraph>
-        <DocList items={[
-          'Presence of a clearly detectable human',
-          'Face and/or body visibility',
-          'Image sharpness and focus',
-          'Lighting quality (not too dark or overexposed)',
-          'Occlusion checks (face covered, cropped, or partially visible)',
-        ]} />
-        <DocParagraph>
-          Images without a usable human subject are discarded.
+          During the <code>analyzing</code> phase, images are filtered for human suitability based on detectable humans, face/body visibility, sharpness, lighting quality, and occlusion checks.
         </DocParagraph>
 
-        <DocHeading level={4}>4. Clustering Stage — Removing Near-Duplicates</DocHeading>
+        <DocHeading level={4}>4. Clustering Stage - Removing Near-Duplicates</DocHeading>
         <DocParagraph>
-          In the <code>clustering</code> phase:
-        </DocParagraph>
-        <DocList items={[
-          'Similar human images (same person, same pose, burst shots) are grouped',
-          'Near-identical selfies or consecutive frames are clustered',
-          'Only the best representative image per cluster is retained',
-        ]} />
-        <DocParagraph>
-          This prevents repetitive or redundant human images from competing in ranking.
+          Similar human images are grouped together, and only the best representative image per cluster is retained.
         </DocParagraph>
 
-        <DocHeading level={4}>5. Selecting Best Photo — Human Quality Ranking</DocHeading>
+        <DocHeading level={4}>5. Selecting Best Photo - Human Quality Ranking</DocHeading>
         <DocParagraph>
-          This is the <strong>core decision stage</strong>.
-        </DocParagraph>
-        <DocParagraph>
-          For each required human category (e.g., male, female, person):
-        </DocParagraph>
-        <DocList items={[
-          'Remaining images are scored using internal quality heuristics: Face clarity and sharpness, Lighting balance, Pose suitability (neutral, front-facing preferred), Framing (head and body properly visible), Minimal occlusion or distortion',
-          'Images are ranked by overall score',
-          'The highest-scoring image is selected per required category',
-        ]} />
-        <DocParagraph>
-          Only one best human image is selected per category.
+          For each required human category, remaining images are scored and ranked by quality. The highest-scoring image is selected per category.
         </DocParagraph>
 
-        <DocHeading level={4}>6. Tagging — Final Category Assignment</DocHeading>
+        <DocHeading level={4}>6. Tagging - Final Category Assignment</DocHeading>
         <DocParagraph>
           After selection:
         </DocParagraph>
@@ -304,7 +241,7 @@ export function ImageAnalysisSection() {
 
         <DocHeading level={3}>One-Line Summary</DocHeading>
         <DocParagraph>
-          <strong>The SDK selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category — or failing if requirements are not met.</strong>
+          <strong>The SDK selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category, or failing if requirements are not met.</strong>
         </DocParagraph>
 
         <DocHeading level={3}>Recommended UX Handling</DocHeading>

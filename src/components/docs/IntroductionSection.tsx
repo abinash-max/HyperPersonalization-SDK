@@ -17,7 +17,7 @@ export function IntroductionSection() {
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mb-6">
             On-device ML-powered photo analysis for personalized shopping experiences. 
-            Analyze rooms, detect faces, and generate product visualizations—all with privacy-first architecture.
+            Analyze rooms, detect faces, and generate product visualizations, all with privacy-first architecture.
           </p>
           
           <div className="flex flex-wrap gap-6">
@@ -27,7 +27,7 @@ export function IntroductionSection() {
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Cpu className="w-4 h-4 text-primary" />
-              <span>CoreML Powered</span>
+              <span>AI Models Powered</span>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Shield className="w-4 h-4 text-primary" />
@@ -44,18 +44,18 @@ export function IntroductionSection() {
       <DocHeading level={2}>Overview</DocHeading>
       <DocParagraph>
         HyperPersonalization enables iOS applications to analyze user photos for personalized e-commerce experiences. 
-        Using on-device CoreML models, the SDK can classify rooms, detect faces, determine demographics, 
+        Using on-device AI models, the SDK can classify rooms, detect faces, determine demographics, 
         and facilitate virtual try-on and furniture visualization features.
       </DocParagraph>
 
       <DocHeading level={3}>Key Capabilities</DocHeading>
       <DocList items={[
-        <><strong>Gallery Analysis</strong> — Scan and classify photos from the user's photo library</>,
-        <><strong>Room Detection</strong> — Identify living rooms, bedrooms, kitchens, and more</>,
-        <><strong>Face Analysis</strong> — Detect faces and classify age, gender for personalization</>,
-        <><strong>Face Clustering</strong> — Group faces to identify the primary user</>,
-        <><strong>Virtual Try-On</strong> — Generate product visualizations on detected users</>,
-        <><strong>Room Visualization</strong> — Place furniture in detected room scenes</>,
+        <><strong>Gallery Analysis</strong> - Scan and classify photos from the user's photo library</>,
+        <><strong>Room Detection</strong> - Identify living rooms, bedrooms, kitchens, and more</>,
+        <><strong>Face Analysis</strong> - Detect faces and classify age, gender for personalization</>,
+        <><strong>Face Clustering</strong> - Group faces to identify the primary user</>,
+        <><strong>Virtual Try-On</strong> - Generate product visualizations on detected users</>,
+        <><strong>Room Visualization</strong> - Place furniture in detected room scenes</>,
       ]} />
 
       <DocHeading level={2} id="installation">Installation</DocHeading>
