@@ -280,7 +280,7 @@ enum PowerMode {
       <DocParagraph>
         HyperPersonalization works on different iPhone models, but performance varies based on the device's capabilities. 
         Newer iPhones with better processors (like A15, A16, A17) will process images faster than older models. 
-        The SDK automatically adjusts its behavior based on your device's capabilities to provide the best experience.
+        The plugin automatically adjusts its behavior based on your device's capabilities to provide the best experience.
       </DocParagraph>
 
       <DocTable 
@@ -304,7 +304,7 @@ enum PowerMode {
       <DocParagraph>
         When processing hundreds or thousands of photos, your app can run out of memory and crash. 
         HyperPersonalization handles this by processing photos in small batches and releasing memory after each batch. 
-        This section shows you how the SDK manages memory efficiently to prevent crashes.
+        This section shows you how the plugin manages memory efficiently to prevent crashes.
       </DocParagraph>
 
       <DocParagraph>
@@ -424,7 +424,7 @@ class PLImageProcessor {
       <DocParagraph>
         Concurrency means doing multiple things at the same time. HyperPersonalization can process multiple photos 
         simultaneously to speed things up. However, you need to be careful to avoid crashes when multiple parts 
-        of your code try to access the same data at once. This section explains how the SDK safely handles 
+        of your code try to access the same data at once. This section explains how the plugin safely handles 
         multiple operations running at the same time without blocking your app's UI.
       </DocParagraph>
 

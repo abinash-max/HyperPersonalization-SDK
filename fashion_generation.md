@@ -8,7 +8,7 @@ This feature is typically used **after personalization and human analysis**, whe
 
 ## What this feature does (in one sentence)
 
-**Given a user photo, a garment product image URL, and a product type, the SDK generates a combined image showing the user wearing the selected garment — or fails with a clear error.**
+**Given a user photo, a garment product image URL, and a product type, the plugin generates a combined image showing the user wearing the selected garment — or fails with a clear error.**
 
 ---
 
@@ -35,7 +35,7 @@ Typical use cases:
 This is the primary function used to generate a fashion try-on image.
 
 ```swift
-sdk.generateFashion(
+plugin.generateFashion(
     thumbnailImg: userPhotoImage,     // UIImage of the user
     garmentImageUrl: "https://example.com/shirt.jpg", // URL of the garment image
     productType: "upper_body",        // "upper_body", "lower_body", "dresses"
@@ -131,7 +131,7 @@ case .failure(let error):
    - A valid product type
 
 2. **Call `generateFashion()`**
-   - The SDK downloads the garment image
+   - The plugin downloads the garment image
    - Analyzes the user photo (detects face/body)
    - Places the garment on the user
    - Generates a combined image
@@ -152,7 +152,7 @@ let userPhotoImage: UIImage = ... // Best face image (male/female/kids)
 let shirtUrl = "https://vendor-site.com/products/shirt-456.jpg"
 
 // Step 3: Generate the try-on visualization
-sdk.generateFashion(
+plugin.generateFashion(
     thumbnailImg: userPhotoImage,     // User's photo
     garmentImageUrl: shirtUrl,        // Garment product image URL
     productType: "upper_body",        // Type of clothing
@@ -186,7 +186,7 @@ sdk.generateFashion(
 
 ---
 
-## What the SDK handles automatically
+## What the plugin handles automatically
 
 - Garment image download
 - User photo analysis
@@ -200,7 +200,7 @@ You only need to provide:
 
 ---
 
-## Typical placement in the SDK pipeline
+## Typical placement in the plugin pipeline
 
 This feature is usually used **after**:
 

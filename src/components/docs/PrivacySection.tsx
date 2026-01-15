@@ -78,7 +78,7 @@ class PLResultCache {
             assetId: assetId,
             result: result,
             cachedAt: Date(),
-            sdkVersion: PLVersion.current
+            pluginVersion: PLVersion.current
         ))
         
         try data.write(to: fileURL, options: .atomic)
@@ -94,8 +94,8 @@ class PLResultCache {
             return nil
         }
         
-        // Invalidate if SDK version changed (models may differ)
-        guard cached.sdkVersion == PLVersion.current else {
+        // Invalidate if plugin version changed (models may differ)
+        guard cached.pluginVersion == PLVersion.current else {
             try? FileManager.default.removeItem(at: fileURL)
             return nil
         }
@@ -124,7 +124,7 @@ struct CachedResult: Codable {
     let assetId: String
     let result: AnalysisResult
     let cachedAt: Date
-    let sdkVersion: String
+    let pluginVersion: String
 }`;
 
   const imageNormalizationCode = `import HyperPersonalization
@@ -291,9 +291,9 @@ class PLImageNormalizer {
         '1. Create cache key: Hash the asset ID (SHA-256) to create a safe filename',
         '2. Store results: Save analysis results to disk as JSON files',
         '3. Retrieve cached results: Load previously saved results from disk',
-        '4. Validate cache: Check if cache is still valid (same SDK version, not too old)',
+        '4. Validate cache: Check if cache is still valid (same plugin version, not too old)',
         '5. Check if re-analysis needed: Compare photo modification date with cache date',
-        '6. Auto-invalidate: Delete cache if SDK version changed or cache is older than 30 days',
+        '6. Auto-invalidate: Delete cache if plugin version changed or cache is older than 30 days',
       ]} />
 
       <DocHeading level={3}>Part 1: Store and Retrieve Cache</DocHeading>
@@ -324,7 +324,7 @@ class PLResultCache {
             assetId: assetId,
             result: result,
             cachedAt: Date(),
-            sdkVersion: PLVersion.current
+            pluginVersion: PLVersion.current
         ))
         
         try data.write(to: fileURL, options: .atomic)
@@ -345,8 +345,8 @@ class PLResultCache {
             return nil
         }
         
-        // Invalidate if SDK version changed (models may differ)
-        guard cached.sdkVersion == PLVersion.current else {
+        // Invalidate if plugin version changed (models may differ)
+        guard cached.pluginVersion == PLVersion.current else {
             try? FileManager.default.removeItem(at: fileURL)
             return nil
         }
@@ -375,7 +375,7 @@ struct CachedResult: Codable {
     let assetId: String
     let result: AnalysisResult
     let cachedAt: Date
-    let sdkVersion: String
+    let pluginVersion: String
 }`} 
         filename="PLResultCache.swift"
         language="swift"
@@ -383,7 +383,7 @@ struct CachedResult: Codable {
 
       <DocList items={[
         'Cache keys are SHA-256 hashes of asset local identifiers',
-        'Cached results are invalidated when SDK version changes',
+        'Cached results are invalidated when plugin version changes',
         'Results older than 30 days are automatically purged',
         'Modified photos trigger re-analysis based on modification date',
       ]} />

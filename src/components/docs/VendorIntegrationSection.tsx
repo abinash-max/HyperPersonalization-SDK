@@ -356,7 +356,7 @@ enum FurnitureCategory: String, Codable {
 
       <DocHeading level={3}>Mapping Based on Room Selection</DocHeading>
       <DocParagraph>
-        After Room Selection, the SDK returns the best room images found. Map products based on the room types discovered:
+        After Room Selection, the plugin returns the best room images found. Map products based on the room types discovered:
       </DocParagraph>
       <DocList items={[
         'If best <strong>bedroom</strong> image found → Use <strong>bed products</strong> for furniture personalization',
@@ -366,7 +366,7 @@ enum FurnitureCategory: String, Codable {
 
       <DocHeading level={3}>Mapping Based on Human Selection</DocHeading>
       <DocParagraph>
-        After Human Selection, the SDK returns the best human images found. Map products based on the person types discovered:
+        After Human Selection, the plugin returns the best human images found. Map products based on the person types discovered:
       </DocParagraph>
       <DocList items={[
         'If best <strong>male</strong> image found → Use <strong>male fashion products</strong> (shirts, pants, etc.) for fashion personalization',
@@ -389,7 +389,7 @@ enum FurnitureCategory: String, Codable {
 
       <DocHeading level={3}>What this feature does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>Given a user photo, a garment product image URL, and a product type, the SDK generates a combined image showing the user wearing the selected garment, or fails with a clear error.</strong>
+        <strong>Given a user photo, a garment product image URL, and a product type, the plugin generates a combined image showing the user wearing the selected garment, or fails with a clear error.</strong>
       </DocParagraph>
 
       <DocHeading level={3}>When to use Fashion Personalization</DocHeading>
@@ -478,7 +478,7 @@ let urlsToPersonalize = indicesToPersonalize.map { index in
         language="swift"
         filename="FashionGeneration.swift"
         code={`// Basic usage with single URL
-sdk.generateFashion(
+plugin.generateFashion(
     thumbnailImg: userPhotoImage,     // UIImage of the user
     garmentImageUrl: "https://example.com/shirt.jpg", // URL of the garment image
     productType: "upper_body",        // "upper_body", "lower_body", "dresses"
@@ -506,7 +506,7 @@ for index in indicesToPersonalize {
     let garmentUrl = garmentProduct.catalogImages[index]
     
     // Track which catalog image index you're personalizing
-    sdk.generateFashion(
+    plugin.generateFashion(
         thumbnailImg: userPhotoImage,
         garmentImageUrl: garmentUrl,  // URL from catalog at the specified index
         productType: "upper_body",
@@ -607,7 +607,7 @@ for index in indicesToPersonalize {
       <DocHeading level={3}>Step-by-step flow</DocHeading>
       <DocList items={[
         'Prepare inputs: A user photo (UIImage), A garment product image URL, A valid product type',
-        'Call generateFashion(): The SDK downloads the garment image, Analyzes the user photo (detects face/body), Places the garment on the user, Generates a combined image',
+        'Call generateFashion(): The plugin downloads the garment image, Analyzes the user photo (detects face/body), Places the garment on the user, Generates a combined image',
         'Receive result: Success: Access and display the generated image, Failure: Handle and surface the error',
       ]} />
 
@@ -622,7 +622,7 @@ let userPhotoImage: UIImage = ... // Best face image (male/female/kids)
 let shirtUrl = "https://vendor-site.com/products/shirt-456.jpg"
 
 // Step 3: Generate the try-on visualization
-sdk.generateFashion(
+plugin.generateFashion(
     thumbnailImg: userPhotoImage,     // User's photo
     garmentImageUrl: shirtUrl,        // Garment product image URL
     productType: "upper_body",        // Type of clothing
@@ -654,7 +654,7 @@ sdk.generateFashion(
         ]}
       />
 
-      <DocHeading level={3}>What the SDK handles automatically</DocHeading>
+      <DocHeading level={3}>What the plugin handles automatically</DocHeading>
       <DocList items={[
         'Garment image download',
         'User photo analysis',
@@ -670,7 +670,7 @@ sdk.generateFashion(
         'Product type',
       ]} />
 
-      <DocHeading level={3}>Typical placement in the SDK pipeline</DocHeading>
+      <DocHeading level={3}>Typical placement in the plugin pipeline</DocHeading>
       <DocParagraph>
         This feature is usually used <strong>after</strong>:
       </DocParagraph>
@@ -700,7 +700,7 @@ sdk.generateFashion(
 
       <DocHeading level={3}>What this feature does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>Given a room photo, a room type, and a furniture product image URL, the SDK generates a combined image showing the furniture placed inside the room, or fails with a clear error.</strong>
+        <strong>Given a room photo, a room type, and a furniture product image URL, the plugin generates a combined image showing the furniture placed inside the room, or fails with a clear error.</strong>
       </DocParagraph>
 
       <DocHeading level={3}>When to use Furniture Personalization</DocHeading>
@@ -789,7 +789,7 @@ let urlsToPersonalize = indicesToPersonalize.map { index in
         language="swift"
         filename="FurnitureGeneration.swift"
         code={`// Basic usage with single URL
-sdk.generateFurniture(
+plugin.generateFurniture(
     thumbnailImg: userRoomImage,      // UIImage of the room
     roomType: "living_room",          // "bedroom", "living_room", "dining_room"
     objectUrl: "https://example.com/sofa.jpg", // URL of the furniture product image
@@ -817,7 +817,7 @@ for index in indicesToPersonalize {
     let furnitureUrl = furnitureProduct.catalogImages[index]
     
     // Track which catalog image index you're personalizing
-    sdk.generateFurniture(
+    plugin.generateFurniture(
         thumbnailImg: userRoomImage,
         roomType: "living_room",
         objectUrl: furnitureUrl,  // URL from catalog at the specified index
@@ -918,7 +918,7 @@ for index in indicesToPersonalize {
       <DocHeading level={3}>Step-by-step flow</DocHeading>
       <DocList items={[
         'Prepare inputs: A room image (UIImage), A room type ("bedroom", "living_room", or "dining_room"), A furniture product image URL',
-        'Call generateFurniture(): The SDK downloads the furniture image, Analyzes the room image, Places the furniture in the room, Generates a combined image',
+        'Call generateFurniture(): The plugin downloads the furniture image, Analyzes the room image, Places the furniture in the room, Generates a combined image',
         'Receive result: Success: Access and display the generated image, Failure: Handle and surface the error',
       ]} />
 
@@ -933,7 +933,7 @@ let userRoomImage: UIImage = ... // From your classified room photos
 let sofaUrl = "https://vendor-site.com/products/sofa-123.jpg"
 
 // Step 3: Generate the visualization
-sdk.generateFurniture(
+plugin.generateFurniture(
     thumbnailImg: userRoomImage,      // Your room photo
     roomType: "living_room",          // Room type (from Phase 3 classification)
     objectUrl: sofaUrl,               // Furniture product image URL
@@ -955,7 +955,7 @@ sdk.generateFurniture(
 )`}
       />
 
-      <DocHeading level={3}>What the SDK handles automatically</DocHeading>
+      <DocHeading level={3}>What the plugin handles automatically</DocHeading>
       <DocList items={[
         'Furniture image download',
         'Room image analysis',
@@ -971,7 +971,7 @@ sdk.generateFurniture(
         'Furniture product image URL',
       ]} />
 
-      <DocHeading level={3}>Typical placement in the SDK pipeline</DocHeading>
+      <DocHeading level={3}>Typical placement in the plugin pipeline</DocHeading>
       <DocParagraph>
         This feature is usually used <strong>after</strong>:
       </DocParagraph>

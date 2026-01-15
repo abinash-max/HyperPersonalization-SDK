@@ -1,29 +1,29 @@
 # Usage
 
-Learn how to initialize the SDK and use the personalization service to analyze photos and discover the best assets for personalization.
+Learn how to initialize the plugin and use the personalization service to analyze photos and discover the best assets for personalization.
 
-The HyperPersonalization SDK provides powerful on-device machine learning capabilities to analyze your user's photo library, identify rooms (bedroom, living room, dining room) and people (male, female, kids), and help you deliver personalized product recommendations. This guide walks you through the complete setup and usage process.
+The HyperPersonalization plugin provides powerful on-device machine learning capabilities to analyze your user's photo library, identify rooms (bedroom, living room, dining room) and people (male, female, kids), and help you deliver personalized product recommendations. This guide walks you through the complete setup and usage process.
 
 ## Initialization
 
-Before you can use any SDK features, you need to import the framework and access the shared SDK instance. The SDK uses a singleton pattern, meaning there's one shared instance that manages all operations.
+Before you can use any plugin features, you need to import the framework and access the shared plugin instance. The plugin uses a singleton pattern, meaning there's one shared instance that manages all operations.
 
 **Why use a shared instance?**
 - Ensures consistent state across your app
 - Manages resources efficiently
-- Provides a single point of access for all SDK operations
+- Provides a single point of access for all plugin operations
 
-Import the SDK and access the shared instance:
+Import the plugin and access the shared instance:
 
 ```swift
-import AIModelOnDeviceSDK
+import AIModelOnDeviceplugin
 
-let sdk = AIModelSDK.shared
+let plugin = AIModelplugin.shared
 ```
 
 **What happens here:**
-- `import AIModelOnDeviceSDK` - Imports the SDK framework into your Swift file
-- `AIModelSDK.shared` - Accesses the singleton instance that handles all SDK operations
+- `import AIModelOnDeviceplugin` - Imports the plugin framework into your Swift file
+- `AIModelplugin.shared` - Accesses the singleton instance that handles all plugin operations
 - This instance is thread-safe and can be used throughout your app
 
 **Where to initialize:**
@@ -37,16 +37,16 @@ Automatically scan the photo library, cluster images, and find the best photos f
 
 ### Code Breakdown
 
-**1. Create SDK Options**
+**1. Create plugin Options**
 
 ```swift
-let options = SDKOptions(
+let options = pluginOptions(
     personalizationType: .all,  // .homegoods, .fashion, or .all
     photoSelectionType: .auto
 )
 ```
 
-- Creates configuration options for the SDK
+- Creates configuration options for the plugin
 - `personalizationType: .all` — analyze both home goods (furniture) and fashion
 - `photoSelectionType: .auto` — automatically scan the entire photo library
 
@@ -54,7 +54,7 @@ let options = SDKOptions(
 
 ```swift
 Task {
-    await sdk.runPersonalizationService(...)
+    await plugin.runPersonalizationService(...)
 }
 ```
 
@@ -64,8 +64,8 @@ Task {
 **3. Call the Service**
 
 ```swift
-await sdk.runPersonalizationService(
-    sdkOptions: options,
+await plugin.runPersonalizationService(
+    pluginOptions: options,
     progress: { state in ... },
     completion: { result in ... }
 )
@@ -90,7 +90,7 @@ progress: { state in
 }
 ```
 
-- Receives progress updates as the SDK works
+- Receives progress updates as the plugin works
 - States: analyzing → clustering → selecting best photos → tagging → complete (or error)
 
 **5. Completion Handler**
@@ -98,9 +98,9 @@ progress: { state in
 ```swift
 completion: { result in
     switch result {
-    case .success(let sdkResult):
-        print("Success: \(sdkResult.message)")
-        for asset in sdkResult.arrPersonalizeAsset {
+    case .success(let pluginResult):
+        print("Success: \(pluginResult.message)")
+        for asset in pluginResult.arrPersonalizeAsset {
             print("Found category: \(asset.validCategory.rawValue)")
             // asset.phAsset contains the PHAsset
         }
@@ -120,19 +120,19 @@ completion: { result in
 - Call the service with options
 - Handle progress updates (analyzing, clustering, etc.)
 - Handle the final result (success with assets, or failure with error)
-- The SDK scans photos, finds the best ones for each category (bedroom, living room, male face, female face, etc.), and returns them in `sdkResult.arrPersonalizeAsset`
+- The plugin scans photos, finds the best ones for each category (bedroom, living room, male face, female face, etc.), and returns them in `pluginResult.arrPersonalizeAsset`
 
 ### Complete Code Example
 
 ```swift
-let options = SDKOptions(
+let options = pluginOptions(
     personalizationType: .all,  // .homegoods, .fashion, or .all
     photoSelectionType: .auto
 )
 
 Task {
-    await sdk.runPersonalizationService(
-        sdkOptions: options,
+    await plugin.runPersonalizationService(
+        pluginOptions: options,
         progress: { state in
             // Handle progress updates
             switch state {
@@ -152,10 +152,10 @@ Task {
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
-                print("Success: \(sdkResult.message)")
+            case .success(let pluginResult):
+                print("Success: \(pluginResult.message)")
                 // Access discovered assets
-                for asset in sdkResult.arrPersonalizeAsset {
+                for asset in pluginResult.arrPersonalizeAsset {
                     print("Found category: \(asset.validCategory.rawValue)")
                     // asset.phAsset contains the PHAsset
                 }
@@ -187,7 +187,7 @@ let assets: [PHAsset] = ... // Your selected assets
 
 ```swift
 Task {
-    await sdk.runPersonalizationServiceWith(...)
+    await plugin.runPersonalizationServiceWith(...)
 }
 ```
 
@@ -197,8 +197,8 @@ Task {
 **3. Call the Manual Service**
 
 ```swift
-await sdk.runPersonalizationServiceWith(
-    sdkOptions: options,
+await plugin.runPersonalizationServiceWith(
+    pluginOptions: options,
     arrPHAssets: assets,
     progress: { state in ... },
     completion: { result in ... }
@@ -207,7 +207,7 @@ await sdk.runPersonalizationServiceWith(
 
 - Uses `runPersonalizationServiceWith` instead of `runPersonalizationService`
 - `arrPHAssets: assets` passes your selected photos
-- `sdkOptions: options` uses the same configuration (personalizationType, etc.)
+- `pluginOptions: options` uses the same configuration (personalizationType, etc.)
 - progress callback reports progress updates
 - completion callback handles the final result
 
@@ -219,7 +219,7 @@ progress: { state in
 }
 ```
 
-- Receives progress updates as the SDK processes your selected photos
+- Receives progress updates as the plugin processes your selected photos
 - States: analyzing → clustering → selecting best photo → tagging → complete (or error)
 
 **5. Completion Handler**
@@ -255,8 +255,8 @@ completion: { result in
 let assets: [PHAsset] = ... // Your selected assets
 
 Task {
-    await sdk.runPersonalizationServiceWith(
-        sdkOptions: options,
+    await plugin.runPersonalizationServiceWith(
+        pluginOptions: options,
         arrPHAssets: assets,
         progress: { state in
             print("State: \(state)")

@@ -11,7 +11,7 @@ interface PageNavItem {
 // Define all pages in order
 const pages: PageNavItem[] = [
   { path: '/introduction', title: 'Introduction', description: 'Get started with HyperPersonalization' },
-  { path: '/usage', title: 'Usage', description: 'Initialize SDK and run personalization service' },
+  { path: '/usage', title: 'Usage', description: 'Initialize plugin and run personalization service' },
   { path: '/permissions', title: 'Permissions', description: 'Gallery access and permission handling' },
   { path: '/image-analysis', title: 'Image Analysis', description: 'Room classification and face analysis' },
   { path: '/vendor-integration', title: 'Personalization', description: 'Product mapping and personalization' },

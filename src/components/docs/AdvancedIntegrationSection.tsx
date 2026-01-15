@@ -341,7 +341,7 @@ extension Notification.Name {
         '3. Load from URL: Load compiled .mlmodelc file from disk or network',
         '4. Check inputs: Verify model has expected input features (e.g., "image" input)',
         '5. Check outputs: Verify model has expected output features (e.g., "classLabel")',
-        '6. Use custom or default: SDK uses custom model if registered, otherwise uses default',
+        '6. Use custom or default: plugin uses custom model if registered, otherwise uses default',
       ]} />
 
       <DocHeading level={3}>Part 1: Register Custom Model</DocHeading>
@@ -471,7 +471,7 @@ struct ModelSpec {
 
       <DocCallout type="warning" title="Model Compatibility">
         Custom models must match the expected input/output signature of the bundled models. 
-        The SDK validates compatibility at registration time.
+        The plugin validates compatibility at registration time.
       </DocCallout>
 
       <DocTable 

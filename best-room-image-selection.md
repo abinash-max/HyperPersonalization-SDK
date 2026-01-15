@@ -1,12 +1,12 @@
-# Best Room Image Selection — SDK Behavior
+# Best Room Image Selection — plugin Behavior
 
-This document explains **how the SDK selects the best room image** for home / room-based personalization, based strictly on the behavior described in `usage.md`.
+This document explains **how the plugin selects the best room image** for home / room-based personalization, based strictly on the behavior described in `usage.md`.
 
 ---
 
 ## Overview
 
-When the SDK is used for **home-related personalization** (e.g., room placement, furniture visualization, home goods try-on), it automatically identifies, evaluates, and selects the **best-quality room image** from the user’s photo library or a developer-provided photo set.
+When the plugin is used for **home-related personalization** (e.g., room placement, furniture visualization, home goods try-on), it automatically identifies, evaluates, and selects the **best-quality room image** from the user’s photo library or a developer-provided photo set.
 
 The selection is deterministic, quality-driven, and fails explicitly if requirements are not met.
 
@@ -16,13 +16,13 @@ The selection is deterministic, quality-driven, and fails explicitly if requirem
 
 ### 1. Personalization Type Determines the Rules
 
-When the SDK is initialized with:
+When the plugin is initialized with:
 
 ```swift
 personalizationType: .homegoods
 ```
 
-the SDK switches to **room and indoor-scene–specific selection logic**.
+the plugin switches to **room and indoor-scene–specific selection logic**.
 
 This configuration:
 - Enables indoor / room classifiers
@@ -100,13 +100,13 @@ After selection:
 - The image is returned as a `PersonalizeAsset`
 - The associated `PHAsset` is provided for downstream use
 
-These tagged assets represent the **final output** of the SDK.
+These tagged assets represent the **final output** of the plugin.
 
 ---
 
 ## Failure Conditions
 
-The SDK fails explicitly if **no suitable room image** can be selected.
+The plugin fails explicitly if **no suitable room image** can be selected.
 
 Common failure reasons:
 - No indoor / room-like photos found
@@ -114,13 +114,13 @@ Common failure reasons:
 - Limited photo access exposes too few usable assets
 - Manual mode receives an empty or irrelevant asset list
 
-In such cases, the SDK returns `.failure(error)` instead of weak or unreliable results.
+In such cases, the plugin returns `.failure(error)` instead of weak or unreliable results.
 
 ---
 
 ## One-Line Summary
 
-**The SDK selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category — or failing if none meet the quality threshold.**
+**The plugin selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category — or failing if none meet the quality threshold.**
 
 ---
 

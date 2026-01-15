@@ -1,20 +1,20 @@
-# HyperPersonalization iOS SDK Documentation (Swift)
+# HyperPersonalization iOS plugin Documentation (Swift)
 
 Personalize your **entire e-commerce inventory** using the customer’s real photos — without making them manually pick “the perfect selfie” or “the perfect room shot”.
 
-The SDK scans the user’s photo library (or a subset the user allows), identifies **high-quality, relevant images** for the selected personalization domains, and returns **the best candidate assets** to power downstream experiences like Virtual Try-On, room placement, cosmetics try-on, accessories try-on, and more.
+The plugin scans the user’s photo library (or a subset the user allows), identifies **high-quality, relevant images** for the selected personalization domains, and returns **the best candidate assets** to power downstream experiences like Virtual Try-On, room placement, cosmetics try-on, accessories try-on, and more.
 
 ---
 
-## What this SDK does (in one sentence)
+## What this plugin does (in one sentence)
 
-**Given a personalization goal (fashion/home goods/etc.) and a photo access strategy (auto/manual), the SDK analyzes photos in parallel, clusters and ranks them, and returns the best photo assets per required category — or fails with a clear, developer-friendly error when requirements can’t be met.**
+**Given a personalization goal (fashion/home goods/etc.) and a photo access strategy (auto/manual), the plugin analyzes photos in parallel, clusters and ranks them, and returns the best photo assets per required category — or fails with a clear, developer-friendly error when requirements can’t be met.**
 
 ---
 
 ## Supported personalization domains
 
-The SDK supports these domains (your app chooses what to enable):
+The plugin supports these domains (your app chooses what to enable):
 
 * **Fashion** (e.g., male/female face/person images, outfit-friendly shots)
 * **Home goods** (e.g., bedroom/living room-friendly images)
@@ -25,7 +25,7 @@ The SDK supports these domains (your app chooses what to enable):
 * **All** (a convenience option when your catalog spans multiple domains)
 
 > **Important behavior:** Some domains have *minimum requirements*.
-> Example: If you choose **fashion** and the scan cannot find a suitable **male** or **female** image (depending on your category rules), the SDK returns a failure (an exception/error) instead of silently returning weak results.
+> Example: If you choose **fashion** and the scan cannot find a suitable **male** or **female** image (depending on your category rules), the plugin returns a failure (an exception/error) instead of silently returning weak results.
 
 ---
 
@@ -55,13 +55,13 @@ Typical choices:
 
 ### 2) `photoSelectionType` (where photos come from)
 
-This decides *how the SDK gets images to analyze*.
+This decides *how the plugin gets images to analyze*.
 
 * `.auto`
-  The SDK scans the **user-accessible** photo library automatically.
+  The plugin scans the **user-accessible** photo library automatically.
 
-  * If the user grants **Full Access**: the SDK can scan the entire library.
-  * If the user grants **Limited Access**: iOS only exposes the selected items; the SDK scans only what it can see.
+  * If the user grants **Full Access**: the plugin can scan the entire library.
+  * If the user grants **Limited Access**: iOS only exposes the selected items; the plugin scans only what it can see.
 
 * Manual scanning (developer-provided `PHAsset[]`)
   For album/folder scope, limited sets, custom pickers, or explicit user selection, you provide `PHAsset` items and call the manual API.
@@ -76,7 +76,7 @@ This decides *how the SDK gets images to analyze*.
 
 ### 3) Pipeline stages (what “progress” means)
 
-The SDK reports states such as:
+The plugin reports states such as:
 
 * `analyzing` → reading metadata + running model inference
 * `clustering` → grouping similar images, removing near-duplicates
@@ -94,17 +94,17 @@ The SDK reports states such as:
 ### Step 0 — Import and get the shared instance
 
 ```swift
-import AIModelOnDeviceSDK
+import AIModelOnDeviceplugin
 
-let sdk = AIModelSDK.shared
+let plugin = AIModelplugin.shared
 ```
 
 ---
 
-### Step 1 — Create `SDKOptions`
+### Step 1 — Create `pluginOptions`
 
 ```swift
-let options = SDKOptions(
+let options = pluginOptions(
     personalizationType: .all,   // .fashion, .homegoods, .all, etc.
     photoSelectionType: .auto    // .auto for library scan
 )
@@ -126,8 +126,8 @@ So:
 
 ```swift
 Task {
-    await sdk.runPersonalizationService(
-        sdkOptions: options,
+    await plugin.runPersonalizationService(
+        pluginOptions: options,
         progress: { state in
             switch state {
             case .analyzing: print("Analyzing photos...")
@@ -140,9 +140,9 @@ Task {
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
-                print("Success: \(sdkResult.message)")
-                for asset in sdkResult.arrPersonalizeAsset {
+            case .success(let pluginResult):
+                print("Success: \(pluginResult.message)")
+                for asset in pluginResult.arrPersonalizeAsset {
                     print("Category: \(asset.validCategory.rawValue)")
                     // asset.phAsset is the selected PHAsset
                 }
@@ -159,12 +159,12 @@ Task {
 
 ## API Reference
 
-## `AIModelSDK`
+## `AIModelplugin`
 
 ### `shared`
 
 ```swift
-let sdk = AIModelSDK.shared
+let plugin = AIModelplugin.shared
 ```
 
 A singleton instance used to run personalization tasks.
@@ -174,21 +174,21 @@ This typically ensures model/session resources are reused efficiently and avoids
 
 ---
 
-### `runPersonalizationService(sdkOptions:progress:completion:)` — Auto scan
+### `runPersonalizationService(pluginOptions:progress:completion:)` — Auto scan
 
-**Use when:** You want the SDK to scan the user-accessible photo library automatically.
+**Use when:** You want the plugin to scan the user-accessible photo library automatically.
 
 ```swift
-await sdk.runPersonalizationService(
-    sdkOptions: SDKOptions,
+await plugin.runPersonalizationService(
+    pluginOptions: pluginOptions,
     progress: (PersonalizationState) -> Void,
-    completion: (Result<SDKResult, Error>) -> Void
+    completion: (Result<pluginResult, Error>) -> Void
 )
 ```
 
 #### Parameters
 
-* `sdkOptions`
+* `pluginOptions`
 
   * `personalizationType`: chooses domain rules and required categories
   * `photoSelectionType`: must be `.auto` for this method
@@ -202,39 +202,39 @@ await sdk.runPersonalizationService(
 
   * Called once with either:
 
-    * `.success(SDKResult)`
+    * `.success(pluginResult)`
     * `.failure(Error)`
 
 #### Expected behavior
 
-* The SDK may analyze in parallel internally.
+* The plugin may analyze in parallel internally.
 * If requirements for the selected domain cannot be satisfied (e.g., fashion requires a suitable person image and none exist), the result is `.failure(...)`.
 
 ---
 
-### `runPersonalizationServiceWith(sdkOptions:arrPHAssets:progress:completion:)` — Manual scan
+### `runPersonalizationServiceWith(pluginOptions:arrPHAssets:progress:completion:)` — Manual scan
 
 **Use when:** You want full control over which photos are analyzed (album/folder/user-picked/limited set/testing).
 
 ```swift
-await sdk.runPersonalizationServiceWith(
-    sdkOptions: SDKOptions,
+await plugin.runPersonalizationServiceWith(
+    pluginOptions: pluginOptions,
     arrPHAssets: [PHAsset],
     progress: (PersonalizationState) -> Void,
-    completion: (Result<SDKResult, Error>) -> Void
+    completion: (Result<pluginResult, Error>) -> Void
 )
 ```
 
 #### Parameters
 
-* `sdkOptions`
+* `pluginOptions`
 
   * Same meaning as auto mode.
-  * For manual runs, set `photoSelectionType` to your “manual” intent (if applicable in your SDK design) or keep consistent with your integration contract.
+  * For manual runs, set `photoSelectionType` to your “manual” intent (if applicable in your plugin design) or keep consistent with your integration contract.
 
 * `arrPHAssets`
 
-  * The exact photos the SDK will analyze.
+  * The exact photos the plugin will analyze.
   * Useful for:
 
     * “Select an album”
@@ -248,13 +248,13 @@ await sdk.runPersonalizationServiceWith(
 
 #### What happens if `arrPHAssets` is empty?
 
-A well-behaved integration should treat it as a failure (“no inputs”). Your SDK’s error should communicate this clearly (see “Errors” below).
+A well-behaved integration should treat it as a failure (“no inputs”). Your plugin’s error should communicate this clearly (see “Errors” below).
 
 ---
 
 ## Data model (what you get back)
 
-### `SDKResult`
+### `pluginResult`
 
 Returned on success.
 
@@ -297,7 +297,7 @@ Best onboarding experience for “set it and forget it”.
 
 If the user selects “Limited Access”, iOS only reveals what the user selected.
 
-* The SDK will scan only what it can see
+* The plugin will scan only what it can see
 * If there aren’t enough suitable photos, you may get a failure like:
 
   * “Insufficient photos for fashion” / “No suitable assets found”
@@ -334,7 +334,7 @@ That `.failure(error)` is where developers must branch by error type and present
 
 ### Error categories you should document (recommended)
 
-Even if your internal implementation differs, your SDK docs should clearly communicate *what can fail and why*. Common categories:
+Even if your internal implementation differs, your plugin docs should clearly communicate *what can fail and why*. Common categories:
 
 1. **Permission / access errors**
 
@@ -367,24 +367,24 @@ Even if your internal implementation differs, your SDK docs should clearly commu
 
 If you can, define a public error type (example shape):
 
-* `SDKError.permissionDenied`
-* `SDKError.insufficientAssets(missing: [RequiredCategory])`
-* `SDKError.noSuitableImagesFound(personalizationType: ...)`
-* `SDKError.invalidInput(reason: ...)`
-* `SDKError.cancelled`
-* `SDKError.internalError(underlying: Error?)`
+* `pluginError.permissionDenied`
+* `pluginError.insufficientAssets(missing: [RequiredCategory])`
+* `pluginError.noSuitableImagesFound(personalizationType: ...)`
+* `pluginError.invalidInput(reason: ...)`
+* `pluginError.cancelled`
+* `pluginError.internalError(underlying: Error?)`
 
 Then developers can do:
 
 ```swift
-if let sdkError = error as? SDKError {
-   switch sdkError { ... }
+if let pluginError = error as? pluginError {
+   switch pluginError { ... }
 }
 ```
 
 ### UX guidance for “insufficient images”
 
-When the SDK fails because it can’t find required image types:
+When the plugin fails because it can’t find required image types:
 
 * **Don’t show a generic “Something went wrong”**
 * Explain what’s missing in user language:
@@ -434,7 +434,7 @@ Limited access is common. Build a graceful fallback:
 
 ### 5) UI thread safety
 
-Unless your SDK guarantees main-thread callbacks, assume:
+Unless your plugin guarantees main-thread callbacks, assume:
 
 * `progress` and `completion` may arrive on background threads
 * Dispatch UI changes to the main queue
@@ -446,22 +446,22 @@ Unless your SDK guarantees main-thread callbacks, assume:
 ### Example 1 — Fashion-only app (Auto scan)
 
 ```swift
-let options = SDKOptions(
+let options = pluginOptions(
     personalizationType: .fashion,
     photoSelectionType: .auto
 )
 
 Task {
-    await sdk.runPersonalizationService(
-        sdkOptions: options,
+    await plugin.runPersonalizationService(
+        pluginOptions: options,
         progress: { state in
             print("State:", state)
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
+            case .success(let pluginResult):
                 // Save selected assets for try-on
-                print(sdkResult.arrPersonalizeAsset.count)
+                print(pluginResult.arrPersonalizeAsset.count)
 
             case .failure(let error):
                 // If this is "insufficient images", prompt user to allow more photos
@@ -479,7 +479,7 @@ Task {
 You fetch assets in your app, then pass them in.
 
 ```swift
-let options = SDKOptions(
+let options = pluginOptions(
     personalizationType: .homegoods,
     photoSelectionType: .auto // or your “manual intent” if you define one
 )
@@ -487,16 +487,16 @@ let options = SDKOptions(
 let assets: [PHAsset] = /* fetch from a chosen album */
 
 Task {
-    await sdk.runPersonalizationServiceWith(
-        sdkOptions: options,
+    await plugin.runPersonalizationServiceWith(
+        pluginOptions: options,
         arrPHAssets: assets,
         progress: { state in
             print("State:", state)
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
-                print("Found:", sdkResult.arrPersonalizeAsset.count)
+            case .success(let pluginResult):
+                print("Found:", pluginResult.arrPersonalizeAsset.count)
             case .failure(let error):
                 print("Failed:", error.localizedDescription)
             }

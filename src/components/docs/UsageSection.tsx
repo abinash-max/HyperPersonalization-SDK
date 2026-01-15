@@ -5,24 +5,24 @@ export function UsageSection() {
   return (
     <DocSection id="usage">
       <span className="phase-badge mb-4">Usage Guide</span>
-      <DocHeading level={1}>HyperPersonalization iOS SDK Documentation (Swift)</DocHeading>
+      <DocHeading level={1}>HyperPersonalization iOS plugin Documentation (Swift)</DocHeading>
       
       <DocParagraph>
         Personalize your <strong>entire e-commerce inventory</strong> using the customer's real photos, without making them manually pick "the perfect selfie" or "the perfect room shot".
       </DocParagraph>
 
       <DocParagraph>
-        The SDK scans the user's photo library (or a subset the user allows), identifies <strong>high-quality, relevant images</strong> for the selected personalization domains, and returns <strong>the best candidate assets</strong> to power downstream experiences like Virtual Try-On, room placement, cosmetics try-on, accessories try-on, and more.
+        The plugin scans the user's photo library (or a subset the user allows), identifies <strong>high-quality, relevant images</strong> for the selected personalization domains, and returns <strong>the best candidate assets</strong> to power downstream experiences like Virtual Try-On, room placement, cosmetics try-on, accessories try-on, and more.
       </DocParagraph>
 
-      <DocHeading level={2} id="what-sdk-does">What this SDK does (in one sentence)</DocHeading>
+      <DocHeading level={2} id="what-plugin-does">What this plugin does (in one sentence)</DocHeading>
       <DocParagraph>
-        <strong>Given a personalization goal (fashion/home goods/etc.) and a photo access strategy (auto/manual), the SDK analyzes photos in parallel, clusters and ranks them, and returns the best photo assets per required category, or fails with a clear, developer-friendly error when requirements can't be met.</strong>
+        <strong>Given a personalization goal (fashion/home goods/etc.) and a photo access strategy (auto/manual), the plugin analyzes photos in parallel, clusters and ranks them, and returns the best photo assets per required category, or fails with a clear, developer-friendly error when requirements can't be met.</strong>
       </DocParagraph>
 
       <DocHeading level={2} id="supported-domains">Supported personalization domains</DocHeading>
       <DocParagraph>
-        The SDK supports these domains (your app chooses what to enable):
+        The plugin supports these domains (your app chooses what to enable):
       </DocParagraph>
       <DocList items={[
         'Fashion (e.g., male/female face/person images, outfit-friendly shots)',
@@ -35,7 +35,7 @@ export function UsageSection() {
       ]} />
 
       <DocCallout type="warning" title="Important behavior">
-        Some domains have minimum requirements. Example: If you choose fashion and the scan cannot find a suitable male or female image (depending on your category rules), the SDK returns a failure (an exception/error) instead of silently returning weak results.
+        Some domains have minimum requirements. Example: If you choose fashion and the scan cannot find a suitable male or female image (depending on your category rules), the plugin returns a failure (an exception/error) instead of silently returning weak results.
       </DocCallout>
 
       <DocHeading level={2} id="core-concepts">Core concepts</DocHeading>
@@ -70,10 +70,10 @@ export function UsageSection() {
 
       <DocHeading level={3} id="photo-selection-type">2) photoSelectionType (where photos come from)</DocHeading>
       <DocParagraph>
-        This decides <em>how the SDK gets images to analyze</em>.
+        This decides <em>how the plugin gets images to analyze</em>.
       </DocParagraph>
       <DocList items={[
-        '.auto - The SDK scans the user-accessible photo library automatically. If the user grants Full Access: the SDK can scan the entire library. If the user grants Limited Access: iOS only exposes the selected items; the SDK scans only what it can see.',
+        '.auto - The plugin scans the user-accessible photo library automatically. If the user grants Full Access: the plugin can scan the entire library. If the user grants Limited Access: iOS only exposes the selected items; the plugin scans only what it can see.',
         'Manual scanning (developer-provided PHAsset[]) - For album/folder scope, limited sets, custom pickers, or explicit user selection, you provide PHAsset items and call the manual API.',
       ]} />
 
@@ -87,7 +87,7 @@ export function UsageSection() {
 
       <DocHeading level={3} id="pipeline-stages">3) Pipeline stages (what "progress" means)</DocHeading>
       <DocParagraph>
-        The SDK reports states such as:
+        The plugin reports states such as:
       </DocParagraph>
       <DocList items={[
         'analyzing → reading metadata + running model inference',
@@ -104,14 +104,14 @@ export function UsageSection() {
 
       <DocHeading level={2} id="initialization">Initialization</DocHeading>
       <DocParagraph>
-        Import the SDK and get the shared instance:
+        Import the plugin and get the shared instance:
       </DocParagraph>
       <CodeBlock
         language="swift"
         filename="AppDelegate.swift"
-        code={`import AIModelOnDeviceSDK
+        code={`import AIModelOnDeviceplugin
 
-let sdk = AIModelSDK.shared`}
+let plugin = AIModelplugin.shared`}
       />
       <DocParagraph>
         A singleton instance used to run personalization tasks. This typically ensures model/session resources are reused efficiently and avoids repeated initialization overhead.
@@ -119,14 +119,14 @@ let sdk = AIModelSDK.shared`}
 
       <DocHeading level={2} id="auto-service">Run Personalization Service (Auto)</DocHeading>
       <DocParagraph>
-        Automatically scan the user-accessible photo library. Use when you want the SDK to scan the photo library automatically.
+        Automatically scan the user-accessible photo library. Use when you want the plugin to scan the photo library automatically.
       </DocParagraph>
 
-      <DocHeading level={3} id="step-1">Step 1 - Create SDKOptions</DocHeading>
+      <DocHeading level={3} id="step-1">Step 1 - Create pluginOptions</DocHeading>
       <CodeBlock
         language="swift"
-        filename="SDKOptions.swift"
-        code={`let options = SDKOptions(
+        filename="pluginOptions.swift"
+        code={`let options = pluginOptions(
     personalizationType: .all,   // .fashion, .homegoods, .all, etc.
     photoSelectionType: .auto    // .auto for library scan
 )`}
@@ -151,8 +151,8 @@ let sdk = AIModelSDK.shared`}
         language="swift"
         filename="PersonalizationService.swift"
         code={`Task {
-    await sdk.runPersonalizationService(
-        sdkOptions: options,
+    await plugin.runPersonalizationService(
+        pluginOptions: options,
         progress: { state in
             switch state {
             case .analyzing: print("Analyzing photos...")
@@ -165,9 +165,9 @@ let sdk = AIModelSDK.shared`}
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
-                print("Success: \\(sdkResult.message)")
-                for asset in sdkResult.arrPersonalizeAsset {
+            case .success(let pluginResult):
+                print("Success: \\(pluginResult.message)")
+                for asset in pluginResult.arrPersonalizeAsset {
                     print("Category: \\(asset.validCategory.rawValue)")
                     // asset.phAsset is the selected PHAsset
                 }
@@ -190,7 +190,7 @@ let sdk = AIModelSDK.shared`}
       <CodeBlock
         language="swift"
         filename="ManualService.swift"
-        code={`let options = SDKOptions(
+        code={`let options = pluginOptions(
     personalizationType: .homegoods,
     photoSelectionType: .auto // or your "manual intent" if you define one
 )
@@ -198,16 +198,16 @@ let sdk = AIModelSDK.shared`}
 let assets: [PHAsset] = /* fetch from a chosen album */
 
 Task {
-    await sdk.runPersonalizationServiceWith(
-        sdkOptions: options,
+    await plugin.runPersonalizationServiceWith(
+        pluginOptions: options,
         arrPHAssets: assets,
         progress: { state in
             print("State:", state)
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
-                print("Found:", sdkResult.arrPersonalizeAsset.count)
+            case .success(let pluginResult):
+                print("Found:", pluginResult.arrPersonalizeAsset.count)
             case .failure(let error):
                 print("Failed:", error.localizedDescription)
             }
@@ -216,21 +216,21 @@ Task {
 }`}
       />
       <DocParagraph>
-        <strong>arrPHAssets:</strong> The exact photos the SDK will analyze. Useful for: "Select an album", "Pick 10 photos", "Scan only last 90 days", "Scan only room photos".
+        <strong>arrPHAssets:</strong> The exact photos the plugin will analyze. Useful for: "Select an album", "Pick 10 photos", "Scan only last 90 days", "Scan only room photos".
       </DocParagraph>
       <DocParagraph>
-        <strong>What happens if arrPHAssets is empty?</strong> A well-behaved integration should treat it as a failure ("no inputs"). Your SDK's error should communicate this clearly.
+        <strong>What happens if arrPHAssets is empty?</strong> A well-behaved integration should treat it as a failure ("no inputs"). Your plugin's error should communicate this clearly.
       </DocParagraph>
 
       <DocHeading level={2} id="api-reference">API Reference</DocHeading>
 
-      <DocHeading level={3} id="aimodelsdk">AIModelSDK</DocHeading>
+      <DocHeading level={3} id="aimodelplugin">AIModelplugin</DocHeading>
 
       <DocHeading level={4} id="shared">shared</DocHeading>
       <CodeBlock
         language="swift"
-        filename="AIModelSDK.swift"
-        code={`let sdk = AIModelSDK.shared`}
+        filename="AIModelplugin.swift"
+        code={`let plugin = AIModelplugin.shared`}
       />
       <DocParagraph>
         A singleton instance used to run personalization tasks.
@@ -239,23 +239,23 @@ Task {
         <strong>Why singleton?</strong> This typically ensures model/session resources are reused efficiently and avoids repeated initialization overhead.
       </DocParagraph>
 
-      <DocHeading level={4} id="run-personalization-service-auto">runPersonalizationService(sdkOptions:progress:completion:) - Auto scan</DocHeading>
+      <DocHeading level={4} id="run-personalization-service-auto">runPersonalizationService(pluginOptions:progress:completion:) - Auto scan</DocHeading>
       <DocParagraph>
-        <strong>Use when:</strong> You want the SDK to scan the user-accessible photo library automatically.
+        <strong>Use when:</strong> You want the plugin to scan the user-accessible photo library automatically.
       </DocParagraph>
       <CodeBlock
         language="swift"
-        filename="AIModelSDK.swift"
-        code={`await sdk.runPersonalizationService(
-    sdkOptions: SDKOptions,
+        filename="AIModelplugin.swift"
+        code={`await plugin.runPersonalizationService(
+    pluginOptions: pluginOptions,
     progress: (PersonalizationState) -> Void,
-    completion: (Result<SDKResult, Error>) -> Void
+    completion: (Result<pluginResult, Error>) -> Void
 )`}
       />
 
       <DocHeading level={4}>Parameters</DocHeading>
       <DocParagraph>
-        <strong>sdkOptions</strong>
+        <strong>pluginOptions</strong>
       </DocParagraph>
       <DocList items={[
         'personalizationType: chooses domain rules and required categories',
@@ -274,44 +274,44 @@ Task {
         <strong>completion</strong>
       </DocParagraph>
       <DocList items={[
-        'Called once with either: .success(SDKResult) or .failure(Error)',
+        'Called once with either: .success(pluginResult) or .failure(Error)',
       ]} />
 
       <DocHeading level={4}>Expected behavior</DocHeading>
       <DocList items={[
-        'The SDK may analyze in parallel internally.',
+        'The plugin may analyze in parallel internally.',
         'If requirements for the selected domain cannot be satisfied (e.g., fashion requires a suitable person image and none exist), the result is .failure(...).',
       ]} />
 
-      <DocHeading level={4} id="run-personalization-service-manual">runPersonalizationServiceWith(sdkOptions:arrPHAssets:progress:completion:) - Manual scan</DocHeading>
+      <DocHeading level={4} id="run-personalization-service-manual">runPersonalizationServiceWith(pluginOptions:arrPHAssets:progress:completion:) - Manual scan</DocHeading>
       <DocParagraph>
         <strong>Use when:</strong> You want full control over which photos are analyzed (album/folder/user-picked/limited set/testing).
       </DocParagraph>
       <CodeBlock
         language="swift"
-        filename="AIModelSDK.swift"
-        code={`await sdk.runPersonalizationServiceWith(
-    sdkOptions: SDKOptions,
+        filename="AIModelplugin.swift"
+        code={`await plugin.runPersonalizationServiceWith(
+    pluginOptions: pluginOptions,
     arrPHAssets: [PHAsset],
     progress: (PersonalizationState) -> Void,
-    completion: (Result<SDKResult, Error>) -> Void
+    completion: (Result<pluginResult, Error>) -> Void
 )`}
       />
 
       <DocHeading level={4}>Parameters</DocHeading>
       <DocParagraph>
-        <strong>sdkOptions</strong>
+        <strong>pluginOptions</strong>
       </DocParagraph>
       <DocList items={[
         'Same meaning as auto mode.',
-        'For manual runs, set photoSelectionType to your "manual" intent (if applicable in your SDK design) or keep consistent with your integration contract.',
+        'For manual runs, set photoSelectionType to your "manual" intent (if applicable in your plugin design) or keep consistent with your integration contract.',
       ]} />
 
       <DocParagraph>
         <strong>arrPHAssets</strong>
       </DocParagraph>
       <DocList items={[
-        'The exact photos the SDK will analyze.',
+        'The exact photos the plugin will analyze.',
         'Useful for: "Select an album", "Pick 10 photos", "Scan only last 90 days", "Scan only room photos"',
       ]} />
 
@@ -324,12 +324,12 @@ Task {
 
       <DocHeading level={4}>What happens if arrPHAssets is empty?</DocHeading>
       <DocParagraph>
-        A well-behaved integration should treat it as a failure ("no inputs"). Your SDK's error should communicate this clearly (see "Errors" below).
+        A well-behaved integration should treat it as a failure ("no inputs"). Your plugin's error should communicate this clearly (see "Errors" below).
       </DocParagraph>
 
       <DocHeading level={2} id="data-model">Data model (what you get back)</DocHeading>
 
-      <DocHeading level={3} id="sdkresult">SDKResult</DocHeading>
+      <DocHeading level={3} id="pluginresult">pluginResult</DocHeading>
       <DocParagraph>
         Returned on success.
       </DocParagraph>
@@ -371,7 +371,7 @@ Task {
         If the user selects "Limited Access", iOS only reveals what the user selected.
       </DocParagraph>
       <DocList items={[
-        'The SDK will scan only what it can see',
+        'The plugin will scan only what it can see',
         'If there aren\'t enough suitable photos, you may get a failure like: "Insufficient photos for fashion" / "No suitable assets found"',
         'Your UI should let users: Add more photos to the allowed set, or Switch to manual selection',
       ]} />
@@ -408,7 +408,7 @@ Task {
 
       <DocHeading level={3}>Error categories you should document (recommended)</DocHeading>
       <DocParagraph>
-        Even if your internal implementation differs, your SDK docs should clearly communicate <em>what can fail and why</em>. Common categories:
+        Even if your internal implementation differs, your plugin docs should clearly communicate <em>what can fail and why</em>. Common categories:
       </DocParagraph>
 
       <DocParagraph>
@@ -457,12 +457,12 @@ Task {
         If you can, define a public error type (example shape):
       </DocParagraph>
       <DocList items={[
-        'SDKError.permissionDenied',
-        'SDKError.insufficientAssets(missing: [RequiredCategory])',
-        'SDKError.noSuitableImagesFound(personalizationType: ...)',
-        'SDKError.invalidInput(reason: ...)',
-        'SDKError.cancelled',
-        'SDKError.internalError(underlying: Error?)',
+        'pluginError.permissionDenied',
+        'pluginError.insufficientAssets(missing: [RequiredCategory])',
+        'pluginError.noSuitableImagesFound(personalizationType: ...)',
+        'pluginError.invalidInput(reason: ...)',
+        'pluginError.cancelled',
+        'pluginError.internalError(underlying: Error?)',
       ]} />
 
       <DocParagraph>
@@ -471,14 +471,14 @@ Task {
       <CodeBlock
         language="swift"
         filename="ErrorHandling.swift"
-        code={`if let sdkError = error as? SDKError {
-   switch sdkError { ... }
+        code={`if let pluginError = error as? pluginError {
+   switch pluginError { ... }
 }`}
       />
 
       <DocHeading level={3}>UX guidance for "insufficient images"</DocHeading>
       <DocParagraph>
-        When the SDK fails because it can't find required image types:
+        When the plugin fails because it can't find required image types:
       </DocParagraph>
       <DocList items={[
         'Don\'t show a generic "Something went wrong"',
@@ -525,7 +525,7 @@ Task {
 
       <DocHeading level={3}>5) UI thread safety</DocHeading>
       <DocParagraph>
-        Unless your SDK guarantees main-thread callbacks, assume:
+        Unless your plugin guarantees main-thread callbacks, assume:
       </DocParagraph>
       <DocList items={[
         'progress and completion may arrive on background threads',
@@ -538,22 +538,22 @@ Task {
       <CodeBlock
         language="swift"
         filename="FashionAppExample.swift"
-        code={`let options = SDKOptions(
+        code={`let options = pluginOptions(
     personalizationType: .fashion,
     photoSelectionType: .auto
 )
 
 Task {
-    await sdk.runPersonalizationService(
-        sdkOptions: options,
+    await plugin.runPersonalizationService(
+        pluginOptions: options,
         progress: { state in
             print("State:", state)
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
+            case .success(let pluginResult):
                 // Save selected assets for try-on
-                print(sdkResult.arrPersonalizeAsset.count)
+                print(pluginResult.arrPersonalizeAsset.count)
 
             case .failure(let error):
                 // If this is "insufficient images", prompt user to allow more photos
@@ -571,7 +571,7 @@ Task {
       <CodeBlock
         language="swift"
         filename="AlbumScanExample.swift"
-        code={`let options = SDKOptions(
+        code={`let options = pluginOptions(
     personalizationType: .homegoods,
     photoSelectionType: .auto // or your "manual intent" if you define one
 )
@@ -579,16 +579,16 @@ Task {
 let assets: [PHAsset] = /* fetch from a chosen album */
 
 Task {
-    await sdk.runPersonalizationServiceWith(
-        sdkOptions: options,
+    await plugin.runPersonalizationServiceWith(
+        pluginOptions: options,
         arrPHAssets: assets,
         progress: { state in
             print("State:", state)
         },
         completion: { result in
             switch result {
-            case .success(let sdkResult):
-                print("Found:", sdkResult.arrPersonalizeAsset.count)
+            case .success(let pluginResult):
+                print("Found:", pluginResult.arrPersonalizeAsset.count)
             case .failure(let error):
                 print("Failed:", error.localizedDescription)
             }

@@ -151,7 +151,7 @@ struct ClassifiedRoom {
         <DocHeading level={1}>Asset Storage & UI Presentation</DocHeading>
         
         <DocParagraph>
-          The SDK maintains a local index of classified room images, enabling quick 
+          The plugin maintains a local index of classified room images, enabling quick 
           retrieval for "Your Rooms" UI carousels and furniture visualization features.
         </DocParagraph>
 
@@ -331,7 +331,7 @@ struct RoomCarouselView: View {
           language="swift"
           filename="RoomCarouselView.swift"
           code={`    private func loadRooms() async {
-        let store = await HyperPersonalizationSDK.shared.roomStore
+        let store = await HyperPersonalizationplugin.shared.roomStore
         rooms = await store.getBestRooms(type: roomType, limit: 10)
     }
     
@@ -339,7 +339,7 @@ struct RoomCarouselView: View {
         guard images[room.localIdentifier] == nil else { return }
         
         Task {
-            if let asset = await HyperPersonalizationSDK.shared.roomStore
+            if let asset = await HyperPersonalizationplugin.shared.roomStore
                 .fetchAsset(localIdentifier: room.localIdentifier) {
                 
                 let image = await loadThumbnail(asset: asset)
@@ -397,7 +397,7 @@ struct RoomCarouselView: View {
         <DocHeading level={1}>Low Confidence Handling</DocHeading>
         
         <DocParagraph>
-          Not all photos are suitable for room personalization. The SDK automatically 
+          Not all photos are suitable for room personalization. The plugin automatically 
           filters out low-quality images based on multiple criteria.
         </DocParagraph>
 
@@ -551,7 +551,7 @@ enum QualityIssue {
 
         <DocCallout type="info" title="Automatic Retry">
           When a high-confidence room is detected but the image quality is poor, 
-          the SDK will automatically search for alternative photos of the same room 
+          the plugin will automatically search for alternative photos of the same room 
           taken at different times.
         </DocCallout>
       </DocSection>

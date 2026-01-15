@@ -1,12 +1,12 @@
-# Best Human Image Selection — SDK Behavior
+# Best Human Image Selection — plugin Behavior
 
-This document explains **how the SDK selects the best human (person) image** for fashion, accessories, shoes, cosmetics, and human-centric personalization, based strictly on the behavior described in `usage.md`.
+This document explains **how the plugin selects the best human (person) image** for fashion, accessories, shoes, cosmetics, and human-centric personalization, based strictly on the behavior described in `usage.md`.
 
 ---
 
 ## Overview
 
-When the SDK is used for **human-based personalization** (fashion, try-on, cosmetics, accessories, shoes), it automatically identifies, evaluates, and selects the **best-quality human image** from the user’s photo library or a developer-provided photo set.
+When the plugin is used for **human-based personalization** (fashion, try-on, cosmetics, accessories, shoes), it automatically identifies, evaluates, and selects the **best-quality human image** from the user’s photo library or a developer-provided photo set.
 
 The selection is quality-driven, category-aware (male/female/person), and **fails explicitly** if required human images cannot be found.
 
@@ -16,7 +16,7 @@ The selection is quality-driven, category-aware (male/female/person), and **fail
 
 ### 1. Personalization Type Determines the Rules
 
-When the SDK is initialized with:
+When the plugin is initialized with:
 
 ```swift
 personalizationType: .fashion
@@ -24,7 +24,7 @@ personalizationType: .fashion
 
 (or another human-centric domain)
 
-the SDK switches to **person-focused selection logic**.
+the plugin switches to **person-focused selection logic**.
 
 This configuration:
 - Enables human / face / body classifiers
@@ -32,7 +32,7 @@ This configuration:
 - Enforces minimum requirements for successful personalization
 - Disables room or scene-centric scoring logic
 
-If required human categories are missing, the SDK returns a failure.
+If required human categories are missing, the plugin returns a failure.
 
 ---
 
@@ -111,7 +111,7 @@ These tagged assets represent the **final personalization inputs**.
 
 ## Failure Conditions
 
-The SDK fails explicitly if **required human images cannot be selected**.
+The plugin fails explicitly if **required human images cannot be selected**.
 
 Common failure reasons:
 - No detectable human in accessible photos
@@ -120,13 +120,13 @@ Common failure reasons:
 - Limited photo access exposes too few usable human images
 - Manual mode receives an empty or irrelevant asset list
 
-In such cases, the SDK returns `.failure(error)` rather than weak or unreliable results.
+In such cases, the plugin returns `.failure(error)` rather than weak or unreliable results.
 
 ---
 
 ## One-Line Summary
 
-**The SDK selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category — or failing if requirements are not met.**
+**The plugin selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category — or failing if requirements are not met.**
 
 ---
 

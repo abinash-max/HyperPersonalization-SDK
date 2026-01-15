@@ -581,7 +581,7 @@ class PLLocalization {
 
       <DocHeading level={2} id="cache-cleaning">Cache Cleaning</DocHeading>
       <DocParagraph>
-        Methods for managing and clearing SDK data to free storage or reset personalization.
+        Methods for managing and clearing plugin data to free storage or reset personalization.
       </DocParagraph>
 
       <DocParagraph>

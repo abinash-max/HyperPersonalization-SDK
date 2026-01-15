@@ -9,7 +9,7 @@ export function ImageAnalysisSection() {
         <DocHeading level={1}>Image Analysis</DocHeading>
         <DocParagraph>
           Image Analysis combines room classification and human analysis to process photos and extract 
-          meaningful insights for personalization. This section covers how the SDK selects the best 
+          meaningful insights for personalization. This section covers how the plugin selects the best 
           room images and best human images for personalization.
         </DocParagraph>
       </DocSection>
@@ -17,13 +17,13 @@ export function ImageAnalysisSection() {
       <DocSection id="room-selection">
         <DocHeading level={2}>Room Selection</DocHeading>
         <DocParagraph>
-          This document explains <strong>how the SDK selects the best room image</strong> for home / room-based personalization, 
+          This document explains <strong>how the plugin selects the best room image</strong> for home / room-based personalization, 
           based strictly on the behavior described in the usage documentation.
         </DocParagraph>
 
         <DocHeading level={3}>Overview</DocHeading>
         <DocParagraph>
-          When the SDK is used for <strong>home-related personalization</strong> (e.g., room placement, furniture visualization, 
+          When the plugin is used for <strong>home-related personalization</strong> (e.g., room placement, furniture visualization, 
           home goods try-on), it automatically identifies, evaluates, and selects the <strong>best-quality room image</strong> 
           from the user's photo library or a developer-provided photo set.
         </DocParagraph>
@@ -35,15 +35,15 @@ export function ImageAnalysisSection() {
 
         <DocHeading level={4}>1. Personalization Type Determines the Rules</DocHeading>
         <DocParagraph>
-          When the SDK is initialized with:
+          When the plugin is initialized with:
         </DocParagraph>
         <CodeBlock
           language="swift"
-          filename="SDKOptions.swift"
+          filename="pluginOptions.swift"
           code={`personalizationType: .homegoods`}
         />
         <DocParagraph>
-          the SDK switches to <strong>room and indoor-scene–specific selection logic</strong>.
+          the plugin switches to <strong>room and indoor-scene–specific selection logic</strong>.
         </DocParagraph>
         <DocParagraph>
           This configuration:
@@ -92,12 +92,12 @@ export function ImageAnalysisSection() {
           'The associated PHAsset is provided for downstream use',
         ]} />
         <DocParagraph>
-          These tagged assets represent the <strong>final output</strong> of the SDK.
+          These tagged assets represent the <strong>final output</strong> of the plugin.
         </DocParagraph>
 
         <DocHeading level={3}>Failure Conditions</DocHeading>
         <DocParagraph>
-          The SDK fails explicitly if <strong>no suitable room image</strong> can be selected.
+          The plugin fails explicitly if <strong>no suitable room image</strong> can be selected.
         </DocParagraph>
         <DocParagraph>
           Common failure reasons:
@@ -109,12 +109,12 @@ export function ImageAnalysisSection() {
           'Manual mode receives an empty or irrelevant asset list',
         ]} />
         <DocParagraph>
-          In such cases, the SDK returns <code>.failure(error)</code> instead of weak or unreliable results.
+          In such cases, the plugin returns <code>.failure(error)</code> instead of weak or unreliable results.
         </DocParagraph>
 
         <DocHeading level={3}>One-Line Summary</DocHeading>
         <DocParagraph>
-          <strong>The SDK selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category, or failing if none meet the quality threshold.</strong>
+          <strong>The plugin selects the best room image by filtering for indoor scenes, removing near-duplicates, ranking remaining images by visual quality, and returning the highest-scoring room photo per category, or failing if none meet the quality threshold.</strong>
         </DocParagraph>
 
         <DocHeading level={3}>Recommended UX Handling</DocHeading>
@@ -136,13 +136,13 @@ export function ImageAnalysisSection() {
       <DocSection id="human-selection">
         <DocHeading level={2}>Human Selection</DocHeading>
         <DocParagraph>
-          This document explains <strong>how the SDK selects the best human (person) image</strong> for fashion, accessories, 
+          This document explains <strong>how the plugin selects the best human (person) image</strong> for fashion, accessories, 
           shoes, cosmetics, and human-centric personalization, based strictly on the behavior described in the usage documentation.
         </DocParagraph>
 
         <DocHeading level={3}>Overview</DocHeading>
         <DocParagraph>
-          When the SDK is used for <strong>human-based personalization</strong> (fashion, try-on, cosmetics, accessories, shoes), 
+          When the plugin is used for <strong>human-based personalization</strong> (fashion, try-on, cosmetics, accessories, shoes), 
           it automatically identifies, evaluates, and selects the <strong>best-quality human image</strong> from the user's photo 
           library or a developer-provided photo set.
         </DocParagraph>
@@ -155,18 +155,18 @@ export function ImageAnalysisSection() {
 
         <DocHeading level={4}>1. Personalization Type Determines the Rules</DocHeading>
         <DocParagraph>
-          When the SDK is initialized with:
+          When the plugin is initialized with:
         </DocParagraph>
         <CodeBlock
           language="swift"
-          filename="SDKOptions.swift"
+          filename="pluginOptions.swift"
           code={`personalizationType: .fashion`}
         />
         <DocParagraph>
           (or another human-centric domain)
         </DocParagraph>
         <DocParagraph>
-          the SDK switches to <strong>person-focused selection logic</strong>.
+          the plugin switches to <strong>person-focused selection logic</strong>.
         </DocParagraph>
         <DocParagraph>
           This configuration:
@@ -178,7 +178,7 @@ export function ImageAnalysisSection() {
           'Disables room or scene-centric scoring logic',
         ]} />
         <DocParagraph>
-          If required human categories are missing, the SDK returns a failure.
+          If required human categories are missing, the plugin returns a failure.
         </DocParagraph>
 
         <DocHeading level={4}>2. Photo Ingestion</DocHeading>
@@ -223,7 +223,7 @@ export function ImageAnalysisSection() {
 
         <DocHeading level={3}>Failure Conditions</DocHeading>
         <DocParagraph>
-          The SDK fails explicitly if <strong>required human images cannot be selected</strong>.
+          The plugin fails explicitly if <strong>required human images cannot be selected</strong>.
         </DocParagraph>
         <DocParagraph>
           Common failure reasons:
@@ -236,12 +236,12 @@ export function ImageAnalysisSection() {
           'Manual mode receives an empty or irrelevant asset list',
         ]} />
         <DocParagraph>
-          In such cases, the SDK returns <code>.failure(error)</code> rather than weak or unreliable results.
+          In such cases, the plugin returns <code>.failure(error)</code> rather than weak or unreliable results.
         </DocParagraph>
 
         <DocHeading level={3}>One-Line Summary</DocHeading>
         <DocParagraph>
-          <strong>The SDK selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category, or failing if requirements are not met.</strong>
+          <strong>The plugin selects the best human image by detecting usable people, removing near-duplicates, ranking candidates by face and body quality, and returning the highest-scoring image per required human category, or failing if requirements are not met.</strong>
         </DocParagraph>
 
         <DocHeading level={3}>Recommended UX Handling</DocHeading>

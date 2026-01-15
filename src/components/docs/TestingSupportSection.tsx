@@ -120,7 +120,7 @@ import os.log
 class PLLogger {
     static let shared = PLLogger()
     
-    private let subsystem = "dev.hyperpersonalization.sdk"
+    private let subsystem = "dev.hyperpersonalization.plugin"
     
     // Log categories
     private lazy var scanLog = OSLog(subsystem: subsystem, category: "Scan")
@@ -543,7 +543,7 @@ import os.log
 class PLLogger {
     static let shared = PLLogger()
     
-    private let subsystem = "dev.hyperpersonalization.sdk"
+    private let subsystem = "dev.hyperpersonalization.plugin"
     
     // Log categories
     private lazy var scanLog = OSLog(subsystem: subsystem, category: "Scan")
@@ -834,7 +834,7 @@ enum PLErrorCode: String, Error {
           ['ERR_API_TIMEOUT', 'Network', 'Check connection, retry'],
           ['ERR_API_RATE_LIMITED', 'Network', 'Wait and retry after cooldown'],
           ['ERR_GENERATION_FAILED', 'Generation', 'Try different photo/product'],
-          ['ERR_CACHE_CORRUPTED', 'Storage', 'Clear SDK cache'],
+          ['ERR_CACHE_CORRUPTED', 'Storage', 'Clear plugin cache'],
         ]}
       />
 

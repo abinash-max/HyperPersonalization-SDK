@@ -8,7 +8,7 @@ This feature is typically used **after room analysis**, when you already have a 
 
 ## What this feature does (in one sentence)
 
-**Given a room photo, a room type, and a furniture product image URL, the SDK generates a combined image showing the furniture placed inside the room — or fails with a clear error.**
+**Given a room photo, a room type, and a furniture product image URL, the plugin generates a combined image showing the furniture placed inside the room — or fails with a clear error.**
 
 ---
 
@@ -35,7 +35,7 @@ Typical use cases:
 This is the primary function used to generate a furniture visualization inside a room image.
 
 ```swift
-sdk.generateFurniture(
+plugin.generateFurniture(
     thumbnailImg: userRoomImage,      // UIImage of the room
     roomType: "living_room",          // "bedroom", "living_room", "dining_room"
     objectUrl: "https://example.com/sofa.jpg", // URL of the furniture product image
@@ -131,7 +131,7 @@ case .failure(let error):
    - A furniture product image URL
 
 2. **Call `generateFurniture()`**
-   - The SDK downloads the furniture image
+   - The plugin downloads the furniture image
    - Analyzes the room image
    - Places the furniture in the room
    - Generates a combined image
@@ -152,7 +152,7 @@ let userRoomImage: UIImage = ... // From your classified room photos
 let sofaUrl = "https://vendor-site.com/products/sofa-123.jpg"
 
 // Step 3: Generate the visualization
-sdk.generateFurniture(
+plugin.generateFurniture(
     thumbnailImg: userRoomImage,      // Your room photo
     roomType: "living_room",          // Room type (from Phase 3 classification)
     objectUrl: sofaUrl,               // Furniture product image URL
@@ -176,7 +176,7 @@ sdk.generateFurniture(
 
 ---
 
-## What the SDK handles automatically
+## What the plugin handles automatically
 
 - Furniture image download
 - Room image analysis
@@ -190,7 +190,7 @@ You only need to provide:
 
 ---
 
-## Typical placement in the SDK pipeline
+## Typical placement in the plugin pipeline
 
 This feature is usually used **after**:
 

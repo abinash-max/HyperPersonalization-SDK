@@ -11,7 +11,7 @@ export function IntroductionSection() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         
         <div className="relative">
-          <span className="phase-badge mb-4">SDK Documentation</span>
+          <span className="phase-badge mb-4">plugin Documentation</span>
           <h1 className="text-4xl font-bold text-foreground mb-4">
             HyperPersonalization
           </h1>
@@ -44,7 +44,7 @@ export function IntroductionSection() {
       <DocHeading level={2}>Overview</DocHeading>
       <DocParagraph>
         HyperPersonalization enables iOS applications to analyze user photos for personalized e-commerce experiences. 
-        Using on-device AI models, the SDK can classify rooms, detect faces, determine demographics, 
+        Using on-device AI models, the plugin can classify rooms, detect faces, determine demographics, 
         and facilitate virtual try-on and furniture visualization features.
       </DocParagraph>
 
@@ -60,25 +60,25 @@ export function IntroductionSection() {
 
       <DocHeading level={2} id="installation">Installation</DocHeading>
       <DocParagraph>
-        HyperPersonalization SDK can be integrated into your project using multiple methods. 
+        HyperPersonalization plugin can be integrated into your project using multiple methods. 
         Choose the one that best fits your workflow.
       </DocParagraph>
 
       <DocHeading level={3}>Binary Distribution (XCFramework)</DocHeading>
       <DocParagraph>
-        To protect the source code, this SDK is distributed as a binary framework (XCFramework).
+        To protect the source code, this plugin is distributed as a binary framework (XCFramework).
       </DocParagraph>
 
       <DocParagraph>
         <strong>Download the Release</strong>
       </DocParagraph>
       <DocParagraph>
-        Download the HyperPersonalizationSDK.xcframework.zip from the Latest Release.
+        Download the HyperPersonalizationplugin.xcframework.zip from the Latest Release.
       </DocParagraph>
 
       <DocHeading level={3}>Swift Package Manager (Binary Target)</DocHeading>
       <DocParagraph>
-        You can include this SDK as a binary target in your own Package.swift.
+        You can include this plugin as a binary target in your own Package.swift.
       </DocParagraph>
 
       <CodeBlock
@@ -87,8 +87,8 @@ export function IntroductionSection() {
         code={`// Package.swift
 targets: [
     .binaryTarget(
-        name: "HyperPersonalizationSDK",
-        url: "https://github.com/YOUR_USERNAME/YOUR_REPO/releases/download/v1.0.0/HyperPersonalizationSDK.xcframework.zip",
+        name: "HyperPersonalizationplugin",
+        url: "https://github.com/YOUR_USERNAME/YOUR_REPO/releases/download/v1.0.0/HyperPersonalizationplugin.xcframework.zip",
         checksum: "16c845f84c15176468b5389d69ba57dee05208d9fa82da439c073d057a4a0a03"
     )
 ]`}
@@ -96,8 +96,8 @@ targets: [
 
       <DocHeading level={3}>Manual Integration</DocHeading>
       <DocList items={[
-        'Unzip HyperPersonalizationSDK.xcframework.zip',
-        'Drag and drop HyperPersonalizationSDK.xcframework into your Xcode project',
+        'Unzip HyperPersonalizationplugin.xcframework.zip',
+        'Drag and drop HyperPersonalizationplugin.xcframework into your Xcode project',
         'Ensure "Embed & Sign" is selected in the "Frameworks, Libraries, and Embedded Content" section of your target settings',
       ]} />
 
@@ -107,7 +107,7 @@ targets: [
 
       <DocHeading level={2}>Architecture Overview</DocHeading>
       <DocParagraph>
-        The SDK follows a pipeline architecture that processes photos through multiple stages:
+        The plugin follows a pipeline architecture that processes photos through multiple stages:
       </DocParagraph>
 
       <div className="my-6 p-6 rounded-xl border border-border bg-card">
